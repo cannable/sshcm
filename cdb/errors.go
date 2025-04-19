@@ -2,12 +2,12 @@ package cdb
 
 import "errors"
 
-var ErrAddNicknameExists = errors.New("Add: nickname exists")
-var ErrAddNoNickname = errors.New("Add: no nickname")
-var ErrCreateSchemaVerInvalid = errors.New("createDB: invalid schema version")
-var ErrMarshallNoRows = errors.New("marshallConnection: sql query returned 0 rows")
-var ErrOpenDbVersionNotRecognized = errors.New("Open: DB schema version not recognized")
+var ErrConnNoDb = errors.New("connection does not have a parent db attached")
+var ErrConnNoId = errors.New("no id in connection struct")
+var ErrConnNoNickname = errors.New("no nickname in connection struct")
+var ErrDbVersionNotRecognized = errors.New("connection db schema version not recognized")
+var ErrDuplicateNickname = errors.New("duplicate nickname")
+var ErrIdNotExist = errors.New("connection id does not exist in db")
+var ErrNoRows = errors.New("sql query returned 0 rows when exactly 1 was expected")
 var ErrPropertyInvalid = errors.New("property is invalid")
-var ErrUpdateIdNotExist = errors.New("Update: id does not exist")
-var ErrUpdateNoId = errors.New("Update: no id")
-var ErrUpdateNoNickname = errors.New("Update: no nickname")
+var ErrSchemaVerInvalid = errors.New("invalid schema version")

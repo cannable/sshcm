@@ -8,23 +8,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type ConnectionDB struct {
-	connection *sql.DB
-	Defaults   map[string]string
-}
-
-type Connection struct {
-	Id          int64
-	Nickname    string
-	Host        string
-	User        string
-	Description string
-	Args        string
-	Identity    string
-	Command     string
-	Binary      string
-}
-
 func (conndb *ConnectionDB) Close() {
 	defer conndb.connection.Close()
 }
@@ -61,7 +44,7 @@ func Open(path string) (ConnectionDB, error) {
 		}
 
 		if !dbUsable {
-			return cdb, ErrOpenDbVersionNotRecognized
+			return cdb, ErrDbVersionNotRecognized
 		}
 
 		// See if the DB schema is old

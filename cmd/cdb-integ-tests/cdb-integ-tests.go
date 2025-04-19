@@ -91,7 +91,6 @@ func main() {
 	}
 
 	// Update a connection
-
 	cn, err := db.Get(2)
 
 	if err != nil {
@@ -100,7 +99,7 @@ func main() {
 
 	cn.Description = "Updated"
 	cn.Host = "asdf"
-	err = db.Update(&cn)
+	err = cn.Update()
 
 	if err != nil {
 		log.Fatal("update: failed to update connection ", err)
@@ -135,7 +134,7 @@ func main() {
 	cnByNick, err = db.GetByProperty("nickname", "does not exist")
 
 	if err != nil {
-		if errors.Is(err, cdb.ErrMarshallNoRows) {
+		if errors.Is(err, cdb.ErrNoRows) {
 			log.Println("get by nickname: didn't get non-existent nickname", cnByNick.Id)
 		} else {
 			log.Fatal("get by nickname: ", err)
@@ -143,6 +142,21 @@ func main() {
 
 	} else {
 		log.Fatal("get by nickname: found non-existent nickname ", err)
+	}
+
+	// Delete a connection
+	delcon, err := db.GetByProperty("nickname", "TESTD")
+
+	if err != nil {
+		log.Fatal("delete: failed to find test d", err)
+	}
+
+	err = delcon.Delete()
+
+	if err != nil {
+		log.Fatal("delete: failed to delete test d ", err)
+	} else {
+		log.Println("delete: deleted test d")
 	}
 
 	// Get and print all connections

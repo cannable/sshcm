@@ -66,7 +66,7 @@ func createDb(db *sql.DB, version float32) error {
 	_, ok := schemas[version]
 
 	if !ok {
-		return ErrCreateSchemaVerInvalid
+		return ErrSchemaVerInvalid
 	}
 
 	// Create table schema
