@@ -3,10 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/cannable/ssh-cm-go/pkg/cdb"
 )
+
+var db cdb.ConnectionDB
 
 func helpBlurb() string {
 	var b strings.Builder
@@ -20,13 +24,43 @@ This is a simple SSH wrapper tool rewritten in Go by C.Annable.
 	return b.String()
 }
 
-func main() {
+func getDbPath() string {
+	const dbFileName = "ssh-cm.connections"
+
+	/*
+		Paths to check, in this order:
+			~/.config/dbFileName
+			[current executable path]/dbFileName
+	*/
+
+	// Assemble fallback path
+	exe, err := os.Executable()
+
+	if err != nil {
+		panic(err)
+	}
+
+	cwd := filepath.Dir(exe)
+	fallback := filepath.Join(cwd, dbFileName)
+
+	// Assemble preferred path
 	homePath, err := os.UserHomeDir()
 
 	if err != nil {
-		log.Fatal(err)
+		return fallback
 	}
-	fmt.Println("Home dir:", homePath)
+
+	return filepath.Join(homePath, dbFileName)
+}
+
+func main() {
+	dbPath := getDbPath()
+
+	db, err := cdb.Open(dbPath)
+
+	if err != nil {
+		panic(err)
+	}
 
 	// Semi-common connection-related flags
 	commonCnFlags := map[string]string{
@@ -125,4 +159,5 @@ func main() {
 		os.Exit(1)
 	}
 
+	db.Close()
 }

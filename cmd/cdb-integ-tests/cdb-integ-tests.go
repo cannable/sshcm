@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/cannable/ssh-cm-go/cdb"
+	"github.com/cannable/ssh-cm-go/pkg/cdb"
 )
 
 func trimmer(s string, len int) string {
