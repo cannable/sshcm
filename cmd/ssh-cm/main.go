@@ -28,38 +28,41 @@ func main() {
 	}
 	fmt.Println("Home dir:", homePath)
 
-	// Flag definitions - Add connection
-	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+	// Semi-common connection-related flags
+	commonCnFlags := map[string]string{
+		"args":        "Arguments to pass to SSH command",
+		"command":     "SSH command to run",
+		"description": "Short description of the connection",
+		"host":        "Connection hostname (or IP address)",
+		"identity":    "SSH identity to use for connection (a la '-i')",
+		"nickname":    "Nickname for connection",
+		"user":        "User name for connection",
+	}
 
-	addArgs := addCmd.String("args", "", "Arguments to pass to SSH command")
-	addCommand := addCmd.String("command", "", "SSH command to run")
-	addDescription := addCmd.String("description", "", "Short description of the connection")
-	addHost := addCmd.String("host", "", "Connection hostname (or IP address)")
-	addIdentity := addCmd.String("identity", "", "SSH identity to use for connection (a la '-i')")
-	addNickname := addCmd.String("nickname", "", "Nickname for connection")
-	addUser := addCmd.String("user", "", "User name for connection")
+	// Flag definitions - Add connection
+	addFlagSet := flag.NewFlagSet("add", flag.ExitOnError)
+	addCmdCnSettings := make(map[string]*string)
+
+	for f, s := range commonCnFlags {
+		addCmdCnSettings[f] = addFlagSet.String(f, "", s)
+	}
 
 	// Flag definitions - Set connection property
-	setCmd := flag.NewFlagSet("set", flag.ExitOnError)
+	setFlagSet := flag.NewFlagSet("set", flag.ExitOnError)
+	setCmdCnSettings := make(map[string]*string)
+	setID := setFlagSet.Int("id", 0, "Connection id")
 
-	setArgs := setCmd.String("args", "", "Arguments to pass to SSH command")
-	setCommand := setCmd.String("command", "", "SSH command to run")
-	setDescription := setCmd.String("description", "", "Short description of the connection")
-	setHost := setCmd.String("host", "", "Connection hostname (or IP setress)")
-	setID := setCmd.Int("id", 0, "Connection id")
-	setIdentity := setCmd.String("identity", "", "SSH identity to use for connection (a la '-i')")
-	setNickname := setCmd.String("nickname", "", "Nickname for connection")
-	setUser := setCmd.String("user", "", "User name for connection")
+	for f, s := range commonCnFlags {
+		setCmdCnSettings[f] = setFlagSet.String(f, "", s)
+	}
 
 	// Flag definitions - Export connections
-	exportCmd := flag.NewFlagSet("export", flag.ExitOnError)
-
-	exportFormat := exportCmd.String("format", "csv", "export content format")
+	exportFlagSet := flag.NewFlagSet("export", flag.ExitOnError)
+	exportFormat := exportFlagSet.String("format", "csv", "export content format")
 
 	// Flag definitions - Import connections
-	importCmd := flag.NewFlagSet("import", flag.ExitOnError)
-
-	importFormat := importCmd.String("format", "csv", "Import content format")
+	importFlagSet := flag.NewFlagSet("import", flag.ExitOnError)
+	importFormat := importFlagSet.String("format", "csv", "Import content format")
 
 	// Process first argument to program, which should be a sub-command
 
@@ -68,6 +71,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Handle sub-commands
 	switch os.Args[1] {
 
 	case "connect":
@@ -78,43 +82,33 @@ func main() {
 	case "list":
 	case "def":
 
-	case "add":
-		addCmd.Parse(os.Args[2:])
-		//addCmd.PrintDefaults()
-		fmt.Println("Add connection.")
-		fmt.Println("    arguments:", *addArgs)
-		fmt.Println("    command:", *addCommand)
-		fmt.Println("    description:", *addDescription)
-		fmt.Println("    host:", *addHost)
-		fmt.Println("    identity:", *addIdentity)
-		fmt.Println("    nickname:", *addNickname)
-		fmt.Println("    user:", *addUser)
+	case "a":
+		addFlagSet.Parse(os.Args[2:])
+		add(addCmdCnSettings)
 
-		// TODO: Check that connection nickname starts with a letter
+	case "add":
+		addFlagSet.Parse(os.Args[2:])
+		add(addCmdCnSettings)
+
+	case "s":
+		setFlagSet.Parse(os.Args[2:])
+		set(*setID, setCmdCnSettings)
 
 	case "set":
-		setCmd.Parse(os.Args[2:])
-		fmt.Println("Set connection.")
-		fmt.Println("    arguments:", *setArgs)
-		fmt.Println("    command:", *setCommand)
-		fmt.Println("    description:", *setDescription)
-		fmt.Println("    host:", *setHost)
-		fmt.Println("    id:", *setID)
-		fmt.Println("    identity:", *setIdentity)
-		fmt.Println("    nickname:", *setNickname)
-		fmt.Println("    user:", *setUser)
+		setFlagSet.Parse(os.Args[2:])
+		set(*setID, setCmdCnSettings)
 
 	case "rm":
 		arg := os.Args[2]
 		fmt.Println("Deleting ", arg)
 
 	case "export":
-		exportCmd.Parse(os.Args[2:])
+		exportFlagSet.Parse(os.Args[2:])
 		fmt.Println("export connections.")
 		fmt.Println("    format:", *exportFormat)
 
 	case "import":
-		importCmd.Parse(os.Args[2:])
+		importFlagSet.Parse(os.Args[2:])
 		fmt.Println("Import connections.")
 		fmt.Println("    format:", *importFormat)
 
