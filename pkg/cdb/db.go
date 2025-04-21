@@ -4,7 +4,6 @@ import "database/sql"
 
 type ConnectionDB struct {
 	connection *sql.DB
-	Defaults   map[string]string
 }
 
 func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
@@ -104,7 +103,7 @@ func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
 		WHERE id = $1
 	`, id)
 
-	c, err := marshallConnection(row, conndb.Defaults)
+	c, err := marshallConnection(row)
 
 	// Attach the connection to its parent (so that connection methods work)
 	c.db = conndb
@@ -139,6 +138,23 @@ func (conndb *ConnectionDB) GetAll() ([]*Connection, error) {
 	return cns, err
 }
 
+func (conndb *ConnectionDB) GetDefault(name string) (string, error) {
+	var def sql.NullString
+
+	// Get connection details from DB
+	err := conndb.connection.QueryRow(`
+		SELECT value
+		FROM defaults
+		WHERE setting = $1
+	`, name).Scan(&def)
+
+	if err != nil {
+		return "", err
+	}
+
+	return def.String, nil
+}
+
 func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connection, error) {
 	var c Connection
 
@@ -161,7 +177,7 @@ func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connec
 		FROM connections
 		WHERE `+property+" = $1", value)
 
-	c, err := marshallConnection(row, conndb.Defaults)
+	c, err := marshallConnection(row)
 
 	// Attach the connection to its parent (so that connection methods work)
 	c.db = conndb

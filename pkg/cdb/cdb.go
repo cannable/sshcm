@@ -3,7 +3,6 @@ package cdb
 import (
 	"database/sql"
 	"os"
-	"os/user"
 
 	_ "modernc.org/sqlite"
 )
@@ -66,35 +65,6 @@ func Open(path string) (ConnectionDB, error) {
 
 	// Assemble connection struct & prep for loading default settings
 	cdb.connection = db
-	defaults := make(map[string]string)
-
-	// Set the default user to the current one before loading application defaults
-	u, err := user.Current()
-
-	if err == nil {
-		defaults["user"] = u.Username
-	}
-
-	// Read default settings from DB
-	rows, err := db.Query("SELECT setting,value FROM defaults")
-
-	if err != nil {
-		return cdb, err
-	}
-
-	for rows.Next() {
-		var k, v sql.NullString
-
-		if err := rows.Scan(&k, &v); err != nil {
-			return cdb, err
-		}
-
-		if v.Valid {
-			defaults[k.String] = v.String
-		}
-	}
-
-	cdb.Defaults = defaults
 
 	return cdb, nil
 }

@@ -25,7 +25,7 @@ func isValidProperty(property string) bool {
 	return false
 }
 
-func marshallConnection(row *sql.Row, def map[string]string) (Connection, error) {
+func marshallConnection(row *sql.Row) (Connection, error) {
 	var c Connection
 	var id sql.NullInt64
 	var nickname, host, user, description, args, identity, command, binary sql.NullString
@@ -39,13 +39,6 @@ func marshallConnection(row *sql.Row, def map[string]string) (Connection, error)
 		}
 		return c, err
 	}
-
-	// Defaults
-	c.User = def["user"]
-	c.Args = def["args"]
-	c.Identity = def["identity"]
-	c.Command = def["command"]
-	c.Binary = def["binary"]
 
 	// If we're missing an id, nickname, or host name, something's very wrong
 	if !(id.Valid || nickname.Valid || host.Valid) {

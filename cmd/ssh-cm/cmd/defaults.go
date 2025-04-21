@@ -12,7 +12,31 @@ var defaultsCmd = &cobra.Command{
 	Short: "List program defaults",
 	Long:  `List program defaults.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("defaults called")
+		db = openDb()
+
+		fmt.Println("Program default settings:")
+
+		defaults := [5]string{
+			"binary",
+			"user",
+			"args",
+			"identity",
+			"command",
+		}
+
+		for i := range defaults {
+			def := defaults[i]
+
+			val, err := db.GetDefault(def)
+
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("%-10s: %s\n", def, val)
+		}
+
+		db.Close()
 	},
 }
 
