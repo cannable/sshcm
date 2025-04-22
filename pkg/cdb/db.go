@@ -77,9 +77,9 @@ func (conndb *ConnectionDB) ExistsByProperty(property string, value string) bool
 	var check int
 
 	err := conndb.connection.QueryRow(`
-		SELECT COUNT(nickname)
+		SELECT id
 		FROM connections
-		WHERE`+property+" = $1", value).Scan(&check)
+		WHERE `+property+" = $1", value).Scan(&check)
 
 	return err == nil
 }
