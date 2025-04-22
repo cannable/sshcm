@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
+	"unicode"
 
 	"github.com/cannable/ssh-cm-go/pkg/cdb"
 	"github.com/spf13/cobra"
@@ -28,6 +30,12 @@ func attachCommonCnFlags(cmd *cobra.Command, addId bool) {
 }
 
 func addConnection() (int64, error) {
+	// Validate nickname follows the correct convention
+	err := validateNickname(setNewNickname)
+
+	if err != nil {
+		return -1, err
+	}
 
 	// Nicknames must be unique. See if this one exists.
 	exists := db.ExistsByProperty("nickname", cmdCnNickname)
@@ -164,8 +172,8 @@ func printConnection(c *cdb.Connection, printHeader bool) {
 {{ printf "%-12s" "Description" }}: {{ .Description }}
 {{ printf "%-12s" "Args" }}: {{ .Args }}
 {{ printf "%-12s" "Identity" }}: {{ .Identity }}
-{{ printf "%-12s" "Command" }}: {{ .Binary }}
-{{ printf "%-12s"  "Binary" }}: {{ .Command }}
+{{ printf "%-12s" "Command" }}: {{ .Command }}
+{{ printf "%-12s"  "Binary" }}: {{ .Binary }}
 `
 	tmpl, err := template.New("connection_record").Parse(t)
 
@@ -185,4 +193,114 @@ func printConnection(c *cdb.Connection, printHeader bool) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func setConnection() error {
+	var c cdb.Connection
+	var err error
+
+	// Did we get an ID or nickname?
+	if cmdCnId > 0 {
+		// Got an ID. Get the connection.
+		c, err = db.Get(cmdCnId)
+
+		if err != nil {
+			return err
+		}
+	} else if strings.Compare(cmdCnNickname, "") != 0 {
+		// Got a nickname. Get the connection.
+		c, err = db.GetByProperty("nickname", cmdCnNickname)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		// Got neither... oops
+		return ErrNoIdOrNickname
+	}
+
+	// Show original values if in debug mode
+	if debugMode {
+		fmt.Println("Current connection settings:")
+		printConnection(&c, false)
+	}
+
+	// Determine if we're renaming
+	if strings.Compare(setNewNickname, "") != 0 {
+		// Validate nickname follows the correct convention
+		err = validateNickname(setNewNickname)
+
+		if err != nil {
+			return err
+		}
+
+		// See if the new nickname exists already.
+		exists := db.ExistsByProperty("nickname", setNewNickname)
+
+		if exists {
+			return ErrNicknameExists
+		}
+
+		c.Nickname = setNewNickname
+	}
+
+	// Update hostname, if it was passed
+	if strings.Compare(cmdCnHost, "") != 0 {
+		c.Host = cmdCnHost
+	}
+
+	// Update host, if it was passed
+	if strings.Compare(cmdCnHost, "") != 0 {
+		c.Host = cmdCnHost
+	}
+
+	// Update user, if it was passed
+	if strings.Compare(cmdCnUser, "") != 0 {
+		c.User = cmdCnUser
+	}
+
+	// Update description, if it was passed
+	if strings.Compare(cmdCnDescription, "") != 0 {
+		c.Description = cmdCnDescription
+	}
+
+	// Update args, if it was passed
+	if strings.Compare(cmdCnArgs, "") != 0 {
+		c.Args = cmdCnArgs
+	}
+
+	// Update identity, if it was passed
+	if strings.Compare(cmdCnIdentity, "") != 0 {
+		c.Identity = cmdCnIdentity
+	}
+
+	// Update command, if it was passed
+	if strings.Compare(cmdCnCommand, "") != 0 {
+		c.Command = cmdCnCommand
+	}
+
+	// Show to-be-updated values if in debug mode
+	if debugMode {
+		fmt.Println("\nNew connection settings:")
+		printConnection(&c, false)
+		fmt.Println("")
+	}
+
+	err = c.Update()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateNickname(nickname string) error {
+	firstChar := []rune(nickname)[0]
+
+	if !unicode.IsLetter(firstChar) {
+		return ErrNicknameLetter
+	}
+
+	return nil
 }

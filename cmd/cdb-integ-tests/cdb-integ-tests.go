@@ -134,7 +134,7 @@ func main() {
 	cnByNick, err = db.GetByProperty("nickname", "does not exist")
 
 	if err != nil {
-		if errors.Is(err, cdb.ErrNoRows) {
+		if errors.Is(err, cdb.ErrConnectionNotFound) {
 			log.Println("get by nickname: didn't get non-existent nickname", cnByNick.Id)
 		} else {
 			log.Fatal("get by nickname: ", err)

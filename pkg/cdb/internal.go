@@ -35,7 +35,7 @@ func marshallConnection(row *sql.Row) (Connection, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return c, ErrNoRows
+			return c, ErrConnectionNotFound
 		}
 		return c, err
 	}

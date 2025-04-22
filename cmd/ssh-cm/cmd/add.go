@@ -21,7 +21,10 @@ var addCmd = &cobra.Command{
 		id, err := addConnection()
 
 		if err != nil {
-			if errors.Is(err, ErrNicknameExists) {
+			if errors.Is(err, ErrNicknameLetter) {
+				fmt.Fprintln(os.Stderr, "Nickname must begin with a letter.")
+				os.Exit(1)
+			} else if errors.Is(err, ErrNicknameExists) {
 				fmt.Fprintf(os.Stderr, "Can't add '%s'. Nickname already exists.\n", cmdCnNickname)
 				os.Exit(1)
 			} else {
