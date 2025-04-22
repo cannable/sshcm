@@ -28,7 +28,7 @@ var (
 				if errors.Is(err, cdb.ErrConnectionNotFound) {
 					fmt.Fprintln(os.Stderr, "Connection not updated because it could not be found.")
 					os.Exit(1)
-				} else if errors.Is(err, ErrNicknameLetter) {
+				} else if errors.Is(err, cdb.ErrNicknameLetter) {
 					fmt.Fprintln(os.Stderr, "Nickname must begin with a letter.")
 					os.Exit(1)
 				} else {

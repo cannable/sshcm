@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cannable/ssh-cm-go/pkg/cdb"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +22,7 @@ var addCmd = &cobra.Command{
 		id, err := addConnection()
 
 		if err != nil {
-			if errors.Is(err, ErrNicknameLetter) {
+			if errors.Is(err, cdb.ErrNicknameLetter) {
 				fmt.Fprintln(os.Stderr, "Nickname must begin with a letter.")
 				os.Exit(1)
 			} else if errors.Is(err, ErrNicknameExists) {

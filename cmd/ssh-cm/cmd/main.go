@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-	"unicode"
 
 	"github.com/cannable/ssh-cm-go/pkg/cdb"
 	"github.com/spf13/cobra"
@@ -31,7 +30,7 @@ func attachCommonCnFlags(cmd *cobra.Command, addId bool) {
 
 func addConnection() (int64, error) {
 	// Validate nickname follows the correct convention
-	err := validateNickname(setNewNickname)
+	err := cdb.ValidateNickname(setNewNickname)
 
 	if err != nil {
 		return -1, err
@@ -228,7 +227,7 @@ func setConnection() error {
 	// Determine if we're renaming
 	if strings.Compare(setNewNickname, "") != 0 {
 		// Validate nickname follows the correct convention
-		err = validateNickname(setNewNickname)
+		err = cdb.ValidateNickname(setNewNickname)
 
 		if err != nil {
 			return err
@@ -290,16 +289,6 @@ func setConnection() error {
 
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func validateNickname(nickname string) error {
-	firstChar := []rune(nickname)[0]
-
-	if !unicode.IsLetter(firstChar) {
-		return ErrNicknameLetter
 	}
 
 	return nil
