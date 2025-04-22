@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +15,23 @@ var addCmd = &cobra.Command{
 	Long:    `Add a connection`,
 	Aliases: []string{"a"},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
+		db = openDb()
+
+		// Create a new connection struct and start populating it
+		id, err := addConnection()
+
+		if err != nil {
+			if errors.Is(err, ErrNicknameExists) {
+				fmt.Fprintf(os.Stderr, "Can't add '%s'. Nickname already exists.\n", cmdCnNickname)
+				os.Exit(1)
+			} else {
+				panic(err)
+			}
+		}
+
+		fmt.Printf("Added new connection with id %d.\n", id)
+
+		db.Close()
 	},
 }
 

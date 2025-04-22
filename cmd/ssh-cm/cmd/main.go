@@ -23,8 +23,41 @@ func attachCommonCnFlags(cmd *cobra.Command, addId bool) {
 	cmd.PersistentFlags().StringVarP(&cmdCnCommand, "command", "c", "", "SSH command to run")
 
 	if addId {
-		cmd.PersistentFlags().Int64VarP(&cmdCnId, "id", "i", 0, "ID of connection")
+		cmd.PersistentFlags().Int64VarP(&cmdCnId, "id", "i", -1, "ID of connection")
 	}
+}
+
+func addConnection() (int64, error) {
+
+	// Nicknames must be unique. See if this one exists.
+	exists := db.ExistsByProperty("nickname", cmdCnNickname)
+
+	if exists {
+		return -1, ErrNicknameExists
+	}
+
+	c := cdb.Connection{
+		Nickname:    cmdCnNickname,
+		Host:        cmdCnHost,
+		User:        cmdCnUser,
+		Description: cmdCnDescription,
+		Args:        cmdCnArgs,
+		Identity:    cmdCnIdentity,
+		Command:     cmdCnCommand,
+	}
+
+	if debugMode {
+		fmt.Println("Adding connection:")
+		printConnection(&c, false)
+	}
+
+	id, err := db.Add(&c)
+
+	if err != nil {
+		return -1, err
+	}
+
+	return id, nil
 }
 
 func getDbPath() string {
@@ -59,8 +92,9 @@ func getDbPath() string {
 func listConnections(cns []*cdb.Connection, wide bool) {
 	// Assemble output template
 	t := `{{ printf "%-4s" "ID" }} | `
-	t = t + `{{ printf "%-20s" "Nickname" }} | `
+	t = t + `{{ printf "%-15s" "Nickname" }} | `
 	t = t + `{{ printf "%-10s" "User" }} | `
+	t = t + `{{ printf "%-15s" "Host" }} | `
 	t = t + `{{ printf "%-20s" "Description" }} | `
 
 	if wide {
@@ -72,8 +106,9 @@ func listConnections(cns []*cdb.Connection, wide bool) {
 
 	t = t + "\n{{ range . }}"
 	t = t + `{{ .Id | printf "%-4d" }} | `
-	t = t + `{{ .Nickname | printf "%-20s" }} | `
+	t = t + `{{ .Nickname | printf "%-15s" }} | `
 	t = t + `{{ .User | printf "%-10s" }} | `
+	t = t + `{{ .Host | printf "%-15s" }} | `
 	t = t + `{{ .Description | printf "%-20s" }} | `
 
 	if wide {
@@ -118,4 +153,36 @@ func openDb() cdb.ConnectionDB {
 	}
 
 	return db
+}
+
+func printConnection(c *cdb.Connection, printHeader bool) {
+	// Assemble output template
+	t := `{{ printf "%-12s" "ID" }}: {{ .Id }}
+{{ printf "%-12s" "Nickname" }}: {{ .Nickname }}
+{{ printf "%-12s" "User" }}: {{ .User }}
+{{ printf "%-12s" "Host" }}: {{ .Host }}
+{{ printf "%-12s" "Description" }}: {{ .Description }}
+{{ printf "%-12s" "Args" }}: {{ .Args }}
+{{ printf "%-12s" "Identity" }}: {{ .Identity }}
+{{ printf "%-12s" "Command" }}: {{ .Binary }}
+{{ printf "%-12s"  "Binary" }}: {{ .Command }}
+`
+	tmpl, err := template.New("connection_record").Parse(t)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if printHeader {
+		fmt.Println("******************************")
+		fmt.Println(c.Nickname)
+		fmt.Println("******************************")
+	}
+
+	// Run templates
+	err = tmpl.Execute(os.Stdout, c)
+
+	if err != nil {
+		panic(err)
+	}
 }
