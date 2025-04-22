@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -67,6 +68,58 @@ func addConnection() (int64, error) {
 	return id, nil
 }
 
+func deleteConnection(arg string) error {
+	var c cdb.Connection
+
+	// Get connection by ID or nickname
+	if err := cdb.ValidateId(arg); err == nil {
+		// Got a valid ID
+		id, err := strconv.Atoi(arg)
+
+		if err != nil {
+			return err
+		}
+
+		if debugMode {
+			fmt.Println(id, "is an id.")
+		}
+
+		// Get connection by id
+		c, err = db.Get(int64(id))
+
+		if err != nil {
+			return cdb.ErrConnNoId
+		}
+	} else if err := cdb.ValidateNickname(arg); err == nil {
+		// Got a valid nickname
+		nickname := arg
+
+		if debugMode {
+			fmt.Println(nickname, "is a nickname.")
+		}
+
+		// Get connection by nickname
+		c, err = db.GetByProperty("nickname", nickname)
+
+		if err != nil {
+			return cdb.ErrConnNoNickname
+		}
+	}
+
+	if debugMode {
+		fmt.Printf("Deleting connection %s (%d).\n", c.Nickname, c.Id)
+	}
+
+	// Delete connection
+	err := c.Delete()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getDbPath() string {
 	const dbFileName = "ssh-cm.connections"
 
@@ -94,6 +147,19 @@ func getDbPath() string {
 	}
 
 	return filepath.Join(homePath, "/.config/"+dbFileName)
+}
+
+func isValidIdOrNickname(s string) bool {
+	// Determine if the passed sument is a nickname or id
+	if err := cdb.ValidateId(s); err == nil {
+		// Got a valid id
+		return true
+	} else if err := cdb.ValidateNickname(s); err == nil {
+		// Got a valid nickname
+		return true
+	}
+
+	return false
 }
 
 func listConnections(cns []*cdb.Connection, wide bool) {
