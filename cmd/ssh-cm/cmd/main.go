@@ -181,21 +181,21 @@ func listConnections(cns []*cdb.Connection, wide bool) {
 		t = t + `{{ printf "%-10s" "Args" }} | `
 		t = t + `{{ printf "%-10s" "Identity" }} | `
 		t = t + `{{ printf "%-10s" "Command" }} | `
-		t = t + `{{printf "%-10s"  "Binary" }} | `
+		t = t + `{{ printf "%-10s"  "Binary" }} | `
 	}
 
 	t = t + "\n{{ range . }}"
 	t = t + `{{ .Id | printf "%-4d" }} | `
-	t = t + `{{ .Nickname | printf "%-15s" }} | `
-	t = t + `{{ .User | printf "%-10s" }} | `
-	t = t + `{{ .Host | printf "%-15s" }} | `
-	t = t + `{{ .Description | printf "%-20s" }} | `
+	t = t + `{{ .TemplateTrimmer .Nickname 15 }} | `
+	t = t + `{{ .TemplateTrimmer .User 10 }} | `
+	t = t + `{{ .TemplateTrimmer .Host 15 }} | `
+	t = t + `{{ .TemplateTrimmer .Description 20 }} | `
 
 	if wide {
-		t = t + `{{ .Args | printf "%-10s" }} | `
-		t = t + `{{ .Identity | printf "%-10s" }} | `
-		t = t + `{{ .Command | printf "%-10s" }} | `
-		t = t + `{{ .Binary | printf "%-10s" }} | `
+		t = t + `{{ .TemplateTrimmer .Args 10 }} | `
+		t = t + `{{ .TemplateTrimmer .Identity 10 }} | `
+		t = t + `{{ .TemplateTrimmer .Command 10 }} | `
+		t = t + `{{ .TemplateTrimmer .Binary 10 }} | `
 	}
 
 	t = t + "\n{{ end }}"

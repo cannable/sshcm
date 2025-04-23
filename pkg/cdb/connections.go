@@ -1,5 +1,7 @@
 package cdb
 
+import "fmt"
+
 type Connection struct {
 	db          *ConnectionDB
 	Id          int64
@@ -84,4 +86,10 @@ func (c *Connection) Update() error {
 		sqlNullableString(c.Binary))
 
 	return err
+}
+
+func (c *Connection) TemplateTrimmer(s string, len int) string {
+	f := fmt.Sprintf("%-*s", len, s)
+
+	return f[:len]
 }

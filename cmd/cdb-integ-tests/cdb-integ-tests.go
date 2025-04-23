@@ -12,11 +12,9 @@ import (
 )
 
 func trimmer(s string, len int) string {
-	f := fmt.Sprintf("%s%s%s", "%-", strconv.Itoa(len), "s")
+	f := fmt.Sprintf("%-*s", len, s)
 
-	t := fmt.Sprintf(f, s)
-
-	return t[:len]
+	return f[:len]
 }
 
 func main() {
