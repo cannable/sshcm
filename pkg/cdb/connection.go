@@ -17,7 +17,7 @@ type Connection struct {
 	Binary      *ConnectionProperty
 }
 
-func (c *Connection) Delete() error {
+func (c Connection) Delete() error {
 	// See if this connection has a parent ConnectionDB attached
 	if c.db == nil {
 		return ErrConnNoDb
@@ -43,7 +43,11 @@ func (c *Connection) Delete() error {
 	return err
 }
 
-func (c *Connection) Update() error {
+func (c Connection) String() string {
+	return fmt.Sprintf("%s (%d)", c.Nickname.Value, c.Id.Value)
+}
+
+func (c Connection) Update() error {
 	// See if this connection has a parent ConnectionDB attached
 	if c.db == nil {
 		return ErrConnNoDb
@@ -91,7 +95,7 @@ func (c *Connection) Update() error {
 	return err
 }
 
-func (c *Connection) TemplateTrimmer(s string, len int) string {
+func (c Connection) TemplateTrimmer(s string, len int) string {
 	f := fmt.Sprintf("%-*s", len, s)
 
 	return f[:len]

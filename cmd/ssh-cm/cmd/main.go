@@ -46,15 +46,15 @@ func addConnection() (int64, error) {
 		return -1, ErrNicknameExists
 	}
 
-	c := cdb.Connection{
-		Nickname:    &cdb.NicknameProperty{Value: cmdCnNickname},
-		Host:        &cdb.ConnectionProperty{Name: "host", Value: cmdCnHost},
-		User:        &cdb.ConnectionProperty{Name: "user", Value: cmdCnUser},
-		Description: &cdb.ConnectionProperty{Name: "description", Value: cmdCnDescription},
-		Args:        &cdb.ConnectionProperty{Name: "args", Value: cmdCnArgs},
-		Identity:    &cdb.ConnectionProperty{Name: "identity", Value: cmdCnIdentity},
-		Command:     &cdb.ConnectionProperty{Name: "command", Value: cmdCnCommand},
-	}
+	c := cdb.NewConnection()
+
+	c.Nickname.Value = cmdCnNickname
+	c.Host.Value = cmdCnHost
+	c.User.Value = cmdCnUser
+	c.Description.Value = cmdCnDescription
+	c.Args.Value = cmdCnArgs
+	c.Identity.Value = cmdCnIdentity
+	c.Command.Value = cmdCnCommand
 
 	if debugMode {
 		fmt.Println("Adding connection:")
@@ -78,11 +78,13 @@ func connect(arg string) error {
 	}
 
 	if debugMode {
-		fmt.Printf("Connecting to %s (%d)...\n", c.Nickname, c.Id)
+		//fmt.Printf("Connecting to %s (%d)...\n", c.Nickname.Value, c.Id.Value)
+		fmt.Println("Connecting to ", c)
 	}
 
 	// Get effective SSH command (binary)
-	cmd, err := c.EffectiveBinary()
+	cmd, err := db.GetEffectiveValue(c.Binary.Value, "binary")
+	fmt.Println("asdf")
 
 	if err != nil {
 		return err
@@ -103,7 +105,7 @@ func connect(arg string) error {
 	var execArgs = []string{execBin}
 
 	// Append arguments
-	args, err := c.EffectiveArgs()
+	args, err := db.GetEffectiveValue(c.Args.Value, "args")
 
 	if err != nil {
 		return err
@@ -116,7 +118,7 @@ func connect(arg string) error {
 	}
 
 	// Append identity
-	identity, err := c.EffectiveIdentity()
+	identity, err := db.GetEffectiveValue(c.Identity.Value, "identity")
 
 	if err != nil {
 		return err
@@ -127,8 +129,8 @@ func connect(arg string) error {
 	}
 
 	// Host & user
-	host := c.Host
-	user, err := c.EffectiveUser()
+	host := c.Host.Value
+	user, err := db.GetEffectiveValue(c.User.Value, "user")
 
 	if err != nil {
 		return err
@@ -285,17 +287,17 @@ func listConnections(cns []*cdb.Connection, wide bool) {
 	}
 
 	t = t + "\n{{ range . }}"
-	t = t + `{{ .Id | printf "%-4d" }} | `
-	t = t + `{{ .Nickname.StringTrimmer 15 }} | `
-	t = t + `{{ .TemplateTrimmer .User 10 }} | `
-	t = t + `{{ .TemplateTrimmer .Host 15 }} | `
-	t = t + `{{ .TemplateTrimmer .Description 20 }} | `
+	t = t + `{{ .Id.StringTrimmed 4 }} | `
+	t = t + `{{ .Nickname.StringTrimmed 15 }} | `
+	t = t + `{{ .User.StringTrimmed 10 }} | `
+	t = t + `{{ .Host.StringTrimmed 15 }} | `
+	t = t + `{{ .Description.StringTrimmed 20 }} | `
 
 	if wide {
-		t = t + `{{ .TemplateTrimmer .Args 10 }} | `
-		t = t + `{{ .TemplateTrimmer .Identity 10 }} | `
-		t = t + `{{ .TemplateTrimmer .Command 10 }} | `
-		t = t + `{{ .TemplateTrimmer .Binary 10 }} | `
+		t = t + `{{ .Args.StringTrimmed 10 }} | `
+		t = t + `{{ .Identity.StringTrimmed 10 }} | `
+		t = t + `{{ .Command.StringTrimmed 10 }} | `
+		t = t + `{{ .Binary.StringTrimmed 10 }} | `
 	}
 
 	t = t + "\n{{ end }}"
@@ -354,16 +356,15 @@ func openDb() cdb.ConnectionDB {
 }
 
 func printConnection(c *cdb.Connection, printHeader bool) {
-	// Assemble output template
-	t := `{{ printf "%-12s" "ID" }}: {{ .Id }}
-{{ printf "%-12s" "Nickname" }}: {{ .Nickname }}
-{{ printf "%-12s" "User" }}: {{ .User }}
-{{ printf "%-12s" "Host" }}: {{ .Host }}
-{{ printf "%-12s" "Description" }}: {{ .Description }}
-{{ printf "%-12s" "Args" }}: {{ .Args }}
-{{ printf "%-12s" "Identity" }}: {{ .Identity }}
-{{ printf "%-12s" "Command" }}: {{ .Command }}
-{{ printf "%-12s"  "Binary" }}: {{ .Binary }}
+	t := `{{ printf "%-12s" "ID" }}: {{ .Id.Value }}
+{{ printf "%-12s" "Nickname" }}: {{ .Nickname.Value }}
+{{ printf "%-12s" "User" }}: {{ .User.Value }}
+{{ printf "%-12s" "Host" }}: {{ .Host.Value }}
+{{ printf "%-12s" "Description" }}: {{ .Description.Value }}
+{{ printf "%-12s" "Args" }}: {{ .Args.Value }}
+{{ printf "%-12s" "Identity" }}: {{ .Identity.Value }}
+{{ printf "%-12s" "Command" }}: {{ .Command.Value }}
+{{ printf "%-12s"  "Binary" }}: {{ .Binary.Value }}
 `
 	tmpl, err := template.New("connection_record").Parse(t)
 
@@ -436,37 +437,37 @@ func setConnection() error {
 
 	// Update hostname, if it was passed
 	if strings.Compare(cmdCnHost, "") != 0 {
-		c.Host = cmdCnHost
+		c.Host.Value = cmdCnHost
 	}
 
 	// Update host, if it was passed
 	if strings.Compare(cmdCnHost, "") != 0 {
-		c.Host = cmdCnHost
+		c.Host.Value = cmdCnHost
 	}
 
 	// Update user, if it was passed
 	if strings.Compare(cmdCnUser, "") != 0 {
-		c.User = cmdCnUser
+		c.User.Value = cmdCnUser
 	}
 
 	// Update description, if it was passed
 	if strings.Compare(cmdCnDescription, "") != 0 {
-		c.Description = cmdCnDescription
+		c.Description.Value = cmdCnDescription
 	}
 
 	// Update args, if it was passed
 	if strings.Compare(cmdCnArgs, "") != 0 {
-		c.Args = cmdCnArgs
+		c.Args.Value = cmdCnArgs
 	}
 
 	// Update identity, if it was passed
 	if strings.Compare(cmdCnIdentity, "") != 0 {
-		c.Identity = cmdCnIdentity
+		c.Identity.Value = cmdCnIdentity
 	}
 
 	// Update command, if it was passed
 	if strings.Compare(cmdCnCommand, "") != 0 {
-		c.Command = cmdCnCommand
+		c.Command.Value = cmdCnCommand
 	}
 
 	// Show to-be-updated values if in debug mode

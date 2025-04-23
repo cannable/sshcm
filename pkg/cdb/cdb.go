@@ -7,7 +7,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func (conndb *ConnectionDB) Close() {
+func (conndb ConnectionDB) Close() {
 	defer conndb.connection.Close()
 }
 
@@ -72,16 +72,16 @@ func Open(path string) (ConnectionDB, error) {
 func NewConnection() Connection {
 	var c Connection
 
-	c.Id = &IdProperty{parent: &c, Name: "id"}
-	c.Nickname = &NicknameProperty{parent: &c, Name: "nickname"}
+	c.Id = &IdProperty{Name: "id"}
+	c.Nickname = &NicknameProperty{Name: "nickname"}
 
-	c.Host = &ConnectionProperty{parent: &c, Name: "host"}
-	c.User = &ConnectionProperty{parent: &c, Name: "user"}
-	c.Description = &ConnectionProperty{parent: &c, Name: "description"}
-	c.Args = &ConnectionProperty{parent: &c, Name: "args"}
-	c.Identity = &ConnectionProperty{parent: &c, Name: "identity"}
-	c.Command = &ConnectionProperty{parent: &c, Name: "command"}
-	c.Binary = &ConnectionProperty{parent: &c, Name: "binary"}
+	c.Host = &ConnectionProperty{Name: "host"}
+	c.User = &ConnectionProperty{Name: "user"}
+	c.Description = &ConnectionProperty{Name: "description"}
+	c.Args = &ConnectionProperty{Name: "args"}
+	c.Identity = &ConnectionProperty{Name: "identity"}
+	c.Command = &ConnectionProperty{Name: "command"}
+	c.Binary = &ConnectionProperty{Name: "binary"}
 
 	return c
 }
