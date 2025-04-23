@@ -3,8 +3,6 @@ package cdb
 import (
 	"database/sql"
 	"os"
-	"strconv"
-	"unicode"
 
 	_ "modernc.org/sqlite"
 )
@@ -69,24 +67,4 @@ func Open(path string) (ConnectionDB, error) {
 	cdb.connection = db
 
 	return cdb, nil
-}
-
-func ValidateNickname(nickname string) error {
-	firstChar := []rune(nickname)[0]
-
-	if !unicode.IsLetter(firstChar) {
-		return ErrNicknameLetter
-	}
-
-	return nil
-}
-
-func ValidateId(id string) error {
-	_, err := strconv.Atoi(id)
-
-	if err != nil {
-		return ErrInvalidId
-	}
-
-	return nil
 }

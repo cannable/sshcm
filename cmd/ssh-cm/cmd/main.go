@@ -359,3 +359,7 @@ func setConnection() error {
 
 	return nil
 }
+
+func setDefault(setting string, value string) error {
+	return db.SetDefault(setting, value)
+}

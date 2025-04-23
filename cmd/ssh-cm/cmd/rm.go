@@ -50,5 +50,4 @@ func init() {
 	rootCmd.AddCommand(removeCmd)
 
 	// Command flags
-	//attachCommonCnFlags(removeCmd, true)
 }

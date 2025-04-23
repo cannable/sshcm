@@ -70,7 +70,7 @@ func (conndb *ConnectionDB) Exists(id int64) bool {
 
 func (conndb *ConnectionDB) ExistsByProperty(property string, value string) bool {
 
-	if !isValidProperty(property) {
+	if !IsValidProperty(property) {
 		return false
 	}
 
@@ -138,27 +138,10 @@ func (conndb *ConnectionDB) GetAll() ([]*Connection, error) {
 	return cns, err
 }
 
-func (conndb *ConnectionDB) GetDefault(name string) (string, error) {
-	var def sql.NullString
-
-	// Get connection details from DB
-	err := conndb.connection.QueryRow(`
-		SELECT value
-		FROM defaults
-		WHERE setting = $1
-	`, name).Scan(&def)
-
-	if err != nil {
-		return "", err
-	}
-
-	return def.String, nil
-}
-
 func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connection, error) {
 	var c Connection
 
-	if !isValidProperty(property) {
+	if !IsValidProperty(property) {
 		return c, ErrPropertyInvalid
 	}
 

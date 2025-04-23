@@ -79,6 +79,21 @@ func main() {
 		log.Fatal("open fail", err)
 	}
 
+	// Set & get defaults
+	err = db.SetDefault("user", "asdf")
+
+	if err != nil {
+		log.Fatal("default: failed to set default user.", err)
+	}
+
+	user, err := db.GetDefault("user")
+
+	if err != nil {
+		log.Fatal("default: failed to get default user.", err)
+	}
+
+	log.Printf("default: set user to '%s'.\n", user)
+
 	// Add test connections
 	for _, c := range cnsToAdd {
 		id, err := db.Add(&c)

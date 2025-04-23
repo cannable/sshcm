@@ -3,27 +3,7 @@ package cdb
 import (
 	"database/sql"
 	"errors"
-	"strings"
 )
-
-func isValidProperty(property string) bool {
-	valid := [8]string{
-		"nickname",
-		"host",
-		"user",
-		"description",
-		"args",
-		"identity",
-		"command",
-		"binary"}
-
-	for _, v := range valid {
-		if strings.Compare(property, v) == 0 {
-			return true
-		}
-	}
-	return false
-}
 
 func marshallConnection(row *sql.Row) (Connection, error) {
 	var c Connection
