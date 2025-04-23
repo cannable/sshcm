@@ -29,7 +29,7 @@ var removeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db = openDb()
 
-		err := deleteConnection(args[0])
+		err := deleteConnection(args[0], cmd.Flags())
 
 		if err != nil {
 			if errors.Is(err, cdb.ErrConnNoId) {

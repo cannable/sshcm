@@ -19,7 +19,7 @@ var addCmd = &cobra.Command{
 		db = openDb()
 
 		// Create a new connection struct and start populating it
-		id, err := addConnection()
+		id, err := addConnection(cmd.Flags())
 
 		if err != nil {
 			if errors.Is(err, cdb.ErrNicknameLetter) {

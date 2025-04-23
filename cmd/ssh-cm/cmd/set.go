@@ -22,7 +22,7 @@ var (
 			db = openDb()
 
 			// Create a new connection struct and start populating it
-			err := setConnection()
+			err := setConnection(cmd.Flags())
 
 			if err != nil {
 				if errors.Is(err, cdb.ErrConnectionNotFound) {

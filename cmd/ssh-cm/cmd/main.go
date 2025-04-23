@@ -12,6 +12,7 @@ import (
 
 	"github.com/cannable/ssh-cm-go/pkg/cdb"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 var db cdb.ConnectionDB
@@ -31,7 +32,7 @@ func attachCommonCnFlags(cmd *cobra.Command, addId bool) {
 	}
 }
 
-func addConnection() (int64, error) {
+func addConnection(flags *pflag.FlagSet) (int64, error) {
 	// Validate nickname follows the correct convention
 	err := cdb.ValidateNickname(setNewNickname)
 
@@ -70,7 +71,7 @@ func addConnection() (int64, error) {
 	return id, nil
 }
 
-func connect(arg string) error {
+func connect(arg string, flags *pflag.FlagSet) error {
 	c, err := getCnByIdOrNickname(arg)
 
 	if err != nil {
@@ -160,7 +161,7 @@ func connect(arg string) error {
 	return nil
 }
 
-func deleteConnection(arg string) error {
+func deleteConnection(arg string, flags *pflag.FlagSet) error {
 	c, err := getCnByIdOrNickname(arg)
 
 	if err != nil {
@@ -386,7 +387,7 @@ func printConnection(c *cdb.Connection, printHeader bool) {
 	}
 }
 
-func setConnection() error {
+func setConnection(flags *pflag.FlagSet) error {
 	var c cdb.Connection
 	var err error
 

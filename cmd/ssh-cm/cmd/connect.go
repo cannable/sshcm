@@ -24,7 +24,7 @@ var connectCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db = openDb()
 
-		err := connect(args[0])
+		err := connect(args[0], cmd.Flags())
 
 		if err != nil {
 			panic(err)
