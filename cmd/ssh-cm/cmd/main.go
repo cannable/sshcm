@@ -124,15 +124,22 @@ func getDbPath() string {
 	const dbFileName = "ssh-cm.connections"
 
 	/*
-		Paths to check, in this order:
+		Paths checked in this order:
+			User-specified (ex. via argument)
 			~/.config/dbFileName
 			[current executable path]/dbFileName
 	*/
+
+	// Immediately return the path the user supplied, if they passed one
+	if strings.Compare(connDbFilePath, "") != 0 {
+		return connDbFilePath
+	}
 
 	// Assemble fallback path
 	exe, err := os.Executable()
 
 	if err != nil {
+		// Panicking here is less than elegant, but a failure here is bad
 		panic(err)
 	}
 

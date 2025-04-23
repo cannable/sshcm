@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	connDbFilePath   string
 	debugMode        bool
 	cmdCnId          int64
 	cmdCnNickname    string
@@ -37,5 +38,6 @@ func Execute() {
 func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
+	rootCmd.PersistentFlags().StringVar(&connDbFilePath, "db", "", "Path to connection DB file (ssh-cm.connections).")
 	rootCmd.PersistentFlags().BoolVarP(&debugMode, "verbose", "v", false, "Verbose output")
 }
