@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"text/template"
 
 	"github.com/cannable/ssh-cm-go/pkg/cdb"
@@ -79,9 +81,79 @@ func connect(arg string) error {
 		fmt.Printf("Connecting to %s (%d)...\n", c.Nickname, c.Id)
 	}
 
-	// Generate command line
+	// Get effective SSH command (binary)
+	cmd, err := c.EffectiveBinary()
+
+	if err != nil {
+		return err
+	}
+
+	// If the program default is empty, use 'ssh'
+	if strings.Compare(cmd, "") == 0 {
+		cmd = "ssh"
+	}
+
+	// Make sure ssh binary resolves in PATH
+	execBin, err := exec.LookPath("ssh")
+
+	if err != nil {
+		return err
+	}
+
+	var execArgs = []string{execBin}
+
+	// Append arguments
+	args, err := c.EffectiveArgs()
+
+	if err != nil {
+		return err
+	}
+
+	if strings.Compare(args, "") != 0 {
+		// TODO: This is probably really mangled and won't work.
+		// Figure out a way to reconstitute flat arguments from the DB.
+		execArgs = append(execArgs, args)
+	}
+
+	// Append identity
+	identity, err := c.EffectiveIdentity()
+
+	if err != nil {
+		return err
+	}
+
+	if strings.Compare(identity, "") != 0 {
+		execArgs = append(execArgs, "-i", identity)
+	}
+
+	// Host & user
+	host := c.Host
+	user, err := c.EffectiveUser()
+
+	if err != nil {
+		return err
+	}
+
+	if strings.Compare(user, "") != 0 {
+		execArgs = append(execArgs, user+"@"+host)
+	} else {
+		execArgs = append(execArgs, host)
+	}
+
+	if debugMode {
+		fmt.Println("connection details:")
+		fmt.Printf("binary:   '%s'\n", cmd)
+		fmt.Printf("arguments:'%s'\n", execArgs)
+	}
 
 	// Connect
+	execEnv := os.Environ()
+
+	err = syscall.Exec(execBin, execArgs, execEnv)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

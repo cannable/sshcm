@@ -1,6 +1,9 @@
 package cdb
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Connection struct {
 	db          *ConnectionDB
@@ -39,6 +42,96 @@ func (c *Connection) Delete() error {
 		c.Id)
 
 	return err
+}
+
+func (c *Connection) EffectiveArgs() (string, error) {
+	if strings.Compare(c.Args, "") != 0 {
+		return c.Args, nil
+	}
+
+	def, err := c.db.GetDefault("args")
+
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Compare(def, "") != 0 {
+		return def, nil
+	}
+
+	return "", nil
+}
+
+func (c *Connection) EffectiveBinary() (string, error) {
+	if strings.Compare(c.Binary, "") != 0 {
+		return c.Binary, nil
+	}
+
+	def, err := c.db.GetDefault("binary")
+
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Compare(def, "") != 0 {
+		return def, nil
+	}
+
+	return "", nil
+}
+
+func (c *Connection) EffectiveCommand() (string, error) {
+	if strings.Compare(c.Command, "") != 0 {
+		return c.Command, nil
+	}
+
+	def, err := c.db.GetDefault("command")
+
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Compare(def, "") != 0 {
+		return def, nil
+	}
+
+	return "", nil
+}
+
+func (c *Connection) EffectiveIdentity() (string, error) {
+	if strings.Compare(c.Identity, "") != 0 {
+		return c.Identity, nil
+	}
+
+	def, err := c.db.GetDefault("identity")
+
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Compare(def, "") != 0 {
+		return def, nil
+	}
+
+	return "", nil
+}
+
+func (c *Connection) EffectiveUser() (string, error) {
+	if strings.Compare(c.User, "") != 0 {
+		return c.User, nil
+	}
+
+	def, err := c.db.GetDefault("user")
+
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Compare(def, "") != 0 {
+		return def, nil
+	}
+
+	return "", nil
 }
 
 func (c *Connection) Update() error {
