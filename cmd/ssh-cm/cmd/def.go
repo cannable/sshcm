@@ -38,6 +38,12 @@ var defCmd = &cobra.Command{
 
 		fmt.Printf("Updated '%s' default setting to '%s'.\n", setting, value)
 
+		err = listDefaults()
+
+		if err != nil {
+			panic(err)
+		}
+
 		db.Close()
 	},
 }

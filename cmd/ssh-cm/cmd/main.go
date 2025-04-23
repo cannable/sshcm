@@ -242,6 +242,24 @@ func listConnections(cns []*cdb.Connection, wide bool) {
 	}
 }
 
+func listDefaults() error {
+	fmt.Println("Program default settings:")
+
+	for i := range cdb.ValidDefaults {
+		def := cdb.ValidDefaults[i]
+
+		val, err := db.GetDefault(def)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%-10s: %s\n", def, val)
+	}
+
+	return nil
+}
+
 func openDb() cdb.ConnectionDB {
 	path := getDbPath()
 

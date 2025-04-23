@@ -6,7 +6,7 @@ import (
 	"unicode"
 )
 
-var validDefaults = [8]string{
+var ValidDefaults = [5]string{
 	"args",
 	"binary",
 	"command",
@@ -14,7 +14,7 @@ var validDefaults = [8]string{
 	"user",
 }
 
-var validProperties = [8]string{
+var ValidProperties = [8]string{
 	"nickname",
 	"host",
 	"user",
@@ -26,7 +26,7 @@ var validProperties = [8]string{
 }
 
 func IsValidDefault(name string) bool {
-	for _, v := range validDefaults {
+	for _, v := range ValidDefaults {
 		if strings.Compare(name, v) == 0 {
 			return true
 		}
@@ -35,7 +35,7 @@ func IsValidDefault(name string) bool {
 }
 
 func IsValidProperty(property string) bool {
-	for _, v := range validProperties {
+	for _, v := range ValidProperties {
 		if strings.Compare(property, v) == 0 {
 			return true
 		}
