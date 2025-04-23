@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -12,9 +10,28 @@ var connectCmd = &cobra.Command{
 	Short:   "Start a connection",
 	Long:    `Start a connection.`,
 	Aliases: []string{"c"},
-	Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if err := cobra.ExactArgs(1)(cmd, args); err != nil {
+			return err
+		}
+
+		if !isValidIdOrNickname(args[0]) {
+			return ErrNoIdOrNickname
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("connect called for", args[0])
+		db = openDb()
+
+		err := connect(args[0])
+
+		if err != nil {
+			panic(err)
+		}
+
+		db.Close()
+
 	},
 }
 

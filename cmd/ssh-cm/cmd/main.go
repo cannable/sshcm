@@ -68,7 +68,46 @@ func addConnection() (int64, error) {
 	return id, nil
 }
 
+func connect(arg string) error {
+	c, err := getCnByIdOrNickname(arg)
+
+	if err != nil {
+		return err
+	}
+
+	if debugMode {
+		fmt.Printf("Connecting to %s (%d)...\n", c.Nickname, c.Id)
+	}
+
+	// Generate command line
+
+	// Connect
+
+	return nil
+}
+
 func deleteConnection(arg string) error {
+	c, err := getCnByIdOrNickname(arg)
+
+	if err != nil {
+		return err
+	}
+
+	if debugMode {
+		fmt.Printf("Deleting connection %s (%d).\n", c.Nickname, c.Id)
+	}
+
+	// Delete connection
+	err = c.Delete()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getCnByIdOrNickname(arg string) (cdb.Connection, error) {
 	var c cdb.Connection
 
 	// Get connection by ID or nickname
@@ -77,7 +116,7 @@ func deleteConnection(arg string) error {
 		id, err := strconv.Atoi(arg)
 
 		if err != nil {
-			return err
+			return c, err
 		}
 
 		if debugMode {
@@ -88,7 +127,7 @@ func deleteConnection(arg string) error {
 		c, err = db.Get(int64(id))
 
 		if err != nil {
-			return cdb.ErrConnNoId
+			return c, cdb.ErrConnNoId
 		}
 	} else if err := cdb.ValidateNickname(arg); err == nil {
 		// Got a valid nickname
@@ -102,22 +141,11 @@ func deleteConnection(arg string) error {
 		c, err = db.GetByProperty("nickname", nickname)
 
 		if err != nil {
-			return cdb.ErrConnNoNickname
+			return c, cdb.ErrConnNoNickname
 		}
 	}
 
-	if debugMode {
-		fmt.Printf("Deleting connection %s (%d).\n", c.Nickname, c.Id)
-	}
-
-	// Delete connection
-	err := c.Delete()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c, nil
 }
 
 func getDbPath() string {
