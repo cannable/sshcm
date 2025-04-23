@@ -68,3 +68,20 @@ func Open(path string) (ConnectionDB, error) {
 
 	return cdb, nil
 }
+
+func NewConnection() Connection {
+	var c Connection
+
+	c.Id = &IdProperty{parent: &c, Name: "id"}
+	c.Nickname = &NicknameProperty{parent: &c, Name: "nickname"}
+
+	c.Host = &ConnectionProperty{parent: &c, Name: "host"}
+	c.User = &ConnectionProperty{parent: &c, Name: "user"}
+	c.Description = &ConnectionProperty{parent: &c, Name: "description"}
+	c.Args = &ConnectionProperty{parent: &c, Name: "args"}
+	c.Identity = &ConnectionProperty{parent: &c, Name: "identity"}
+	c.Command = &ConnectionProperty{parent: &c, Name: "command"}
+	c.Binary = &ConnectionProperty{parent: &c, Name: "binary"}
+
+	return c
+}

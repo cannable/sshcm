@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/cannable/ssh-cm-go/pkg/cdb"
 )
@@ -21,34 +20,49 @@ func main() {
 	testFilePath := "./cdb-integ-tests.sqlite"
 
 	// Define test connections
-	var cnsToAdd = []cdb.Connection{
-		cdb.Connection{
-			Nickname: "testA",
-			Host:     "some.host.name",
-		},
-		cdb.Connection{
-			Nickname: "test_b",
-			Host:     "127.0.0.1",
-			User:     "tOor",
-		},
-		cdb.Connection{
-			Nickname:    "tes^ C",
-			Host:        "blarg",
-			Description: "Something profound here",
-			User:        "nobody",
-		},
-		cdb.Connection{
-			Nickname: "TESTD",
-			Host:     "ggggg",
-			Identity: "~/.ssh/id_rsa_demo",
-		},
-		cdb.Connection{
-			Nickname: "teste",
-			Host:     "soisoisoi",
-			Binary:   "sftp",
-		},
-	}
+	var cnsToAdd []cdb.Connection
 
+	// Test A
+	tst := cdb.NewConnection()
+	tst.Nickname.Value = "testA"
+	tst.Host.Value = "some.host.name"
+
+	cnsToAdd = append(cnsToAdd, tst)
+
+	// Test B
+	tst = cdb.NewConnection()
+	tst.Nickname.Value = "test_b"
+	tst.Host.Value = "127.0.0.1"
+	tst.User.Value = "tOor"
+
+	cnsToAdd = append(cnsToAdd, tst)
+
+	// Test C
+	tst = cdb.NewConnection()
+	tst.Nickname.Value = "tes^ C"
+	tst.Host.Value = "blarg"
+	tst.Description.Value = "Something profound here"
+	tst.User.Value = "nobody"
+
+	cnsToAdd = append(cnsToAdd, tst)
+
+	// Test D
+	tst = cdb.NewConnection()
+	tst.Nickname.Value = "TESTD"
+	tst.Host.Value = "ggggg"
+	tst.Identity.Value = "~/.ssh/id_rsa_demo"
+
+	cnsToAdd = append(cnsToAdd, tst)
+
+	// Test E
+	tst = cdb.NewConnection()
+	tst.Nickname.Value = "teste"
+	tst.Host.Value = "soisoisoi"
+	tst.User.Value = "sftp"
+
+	cnsToAdd = append(cnsToAdd, tst)
+
+	// Begin tests
 	_, err := os.Stat(testFilePath)
 
 	// File exists, delete it
@@ -103,15 +117,18 @@ func main() {
 		log.Println("add: added connection", id)
 	}
 
+	log.Println("blarg")
+
 	// Update a connection
 	cn, err := db.Get(2)
+	log.Println("post-blarg")
 
 	if err != nil {
 		log.Fatal("update: failed to get connection ", err)
 	}
 
-	cn.Description = "Updated"
-	cn.Host = "asdf"
+	cn.Description.Value = "Updated"
+	cn.Host.Value = "asdf"
 	err = cn.Update()
 
 	if err != nil {
@@ -192,17 +209,15 @@ func main() {
 	fmt.Print("\n")
 
 	for i := range cns {
-		idString := strconv.Itoa(int(cns[i].Id))
-
-		fmt.Print(trimmer(idString, 4) + " ")
-		fmt.Print(trimmer(cns[i].Nickname, 15) + " ")
-		fmt.Print(trimmer(cns[i].Host, 20) + " ")
-		fmt.Print(trimmer(cns[i].User, 10) + " ")
-		fmt.Print(trimmer(cns[i].Description, 20) + " ")
-		fmt.Print(trimmer(cns[i].Args, 10) + " ")
-		fmt.Print(trimmer(cns[i].Identity, 10) + " ")
-		fmt.Print(trimmer(cns[i].Command, 10) + " ")
-		fmt.Print(trimmer(cns[i].Binary, 10) + " ")
+		fmt.Print(cns[i].Id.StringTrimmed(4) + " ")
+		fmt.Print(cns[i].Nickname.StringTrimmed(15) + " ")
+		fmt.Print(cns[i].Host.StringTrimmed(20) + " ")
+		fmt.Print(cns[i].User.StringTrimmed(10) + " ")
+		fmt.Print(cns[i].Description.StringTrimmed(20) + " ")
+		fmt.Print(cns[i].Args.StringTrimmed(10) + " ")
+		fmt.Print(cns[i].Identity.StringTrimmed(10) + " ")
+		fmt.Print(cns[i].Command.StringTrimmed(10) + " ")
+		fmt.Print(cns[i].Binary.StringTrimmed(10) + " ")
 		fmt.Print("\n")
 	}
 

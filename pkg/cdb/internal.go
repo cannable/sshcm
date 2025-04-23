@@ -6,7 +6,8 @@ import (
 )
 
 func marshallConnection(row *sql.Row) (Connection, error) {
-	var c Connection
+	c := NewConnection()
+
 	var id sql.NullInt64
 	var nickname, host, user, description, args, identity, command, binary sql.NullString
 
@@ -25,40 +26,45 @@ func marshallConnection(row *sql.Row) (Connection, error) {
 		return c, err
 	}
 
-	c.Id = id.Int64
-	c.Nickname = nickname.String
-	c.Host = host.String
-
-	// If the DB has a user name for this connection, use it
-	if user.Valid {
-		c.User = user.String
-	}
+	// Set connection ID, nickname, and host
+	c.Id.Value = id.Int64
+	c.Nickname.Value = nickname.String
+	c.Host.Value = host.String
 
 	// The remaining bits from the DB are optional
 
+	// If the DB has a user name for this connection, use it
+	if user.Valid {
+		c.User.Value = user.String
+	}
+
 	// Use the description from the DB if it exists
 	if description.Valid {
-		c.Description = description.String
+		c.Description.Value = description.String
 	}
 
 	// Use the args from the DB if it exists
 	if args.Valid {
-		c.Args = args.String
+		c.Args.Value = args.String
 	}
 
 	// Use the identity from the DB if it exists
 	if identity.Valid {
-		c.Identity = identity.String
+		c.Identity.Value = identity.String
 	}
 
 	// Use the command from the DB if it exists
 	if command.Valid {
-		c.Command = command.String
+		c.Command.Value = command.String
+
+		if err != nil {
+			return c, err
+		}
 	}
 
 	// Use the binary from the DB if it exists
 	if binary.Valid {
-		c.Binary = binary.String
+		c.Binary.Value = binary.String
 	}
 
 	return c, err

@@ -47,13 +47,13 @@ func addConnection() (int64, error) {
 	}
 
 	c := cdb.Connection{
-		Nickname:    cmdCnNickname,
-		Host:        cmdCnHost,
-		User:        cmdCnUser,
-		Description: cmdCnDescription,
-		Args:        cmdCnArgs,
-		Identity:    cmdCnIdentity,
-		Command:     cmdCnCommand,
+		Nickname:    &cdb.NicknameProperty{Value: cmdCnNickname},
+		Host:        &cdb.ConnectionProperty{Name: "host", Value: cmdCnHost},
+		User:        &cdb.ConnectionProperty{Name: "user", Value: cmdCnUser},
+		Description: &cdb.ConnectionProperty{Name: "description", Value: cmdCnDescription},
+		Args:        &cdb.ConnectionProperty{Name: "args", Value: cmdCnArgs},
+		Identity:    &cdb.ConnectionProperty{Name: "identity", Value: cmdCnIdentity},
+		Command:     &cdb.ConnectionProperty{Name: "command", Value: cmdCnCommand},
 	}
 
 	if debugMode {
@@ -286,7 +286,7 @@ func listConnections(cns []*cdb.Connection, wide bool) {
 
 	t = t + "\n{{ range . }}"
 	t = t + `{{ .Id | printf "%-4d" }} | `
-	t = t + `{{ .TemplateTrimmer .Nickname 15 }} | `
+	t = t + `{{ .Nickname.StringTrimmer 15 }} | `
 	t = t + `{{ .TemplateTrimmer .User 10 }} | `
 	t = t + `{{ .TemplateTrimmer .Host 15 }} | `
 	t = t + `{{ .TemplateTrimmer .Description 20 }} | `
@@ -431,7 +431,7 @@ func setConnection() error {
 			return ErrNicknameExists
 		}
 
-		c.Nickname = setNewNickname
+		c.Nickname = &cdb.NicknameProperty{Value: setNewNickname}
 	}
 
 	// Update hostname, if it was passed

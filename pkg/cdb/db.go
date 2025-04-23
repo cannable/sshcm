@@ -1,6 +1,8 @@
 package cdb
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type ConnectionDB struct {
 	connection *sql.DB
@@ -8,12 +10,12 @@ type ConnectionDB struct {
 
 func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 	// Do we have a nickname?
-	if len(c.Nickname) < 1 {
+	if c.Nickname.IsEmpty() {
 		return -1, ErrConnNoNickname
 	}
 
 	// See if the nickname already exists
-	if conndb.ExistsByProperty("nickname", c.Nickname) {
+	if conndb.ExistsByProperty("nickname", c.Nickname.Value) {
 		return -1, ErrDuplicateNickname
 	}
 
@@ -38,14 +40,15 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 			$7,
 			$8
 		)`,
-		c.Nickname,
-		c.Host,
-		sqlNullableString(c.User),
-		sqlNullableString(c.Description),
-		sqlNullableString(c.Args),
-		sqlNullableString(c.Identity),
-		sqlNullableString(c.Command),
-		sqlNullableString(c.Binary))
+		c.Nickname.SqlNullableValue(),
+		c.Host.SqlNullableValue(),
+		c.User.SqlNullableValue(),
+		c.Description.SqlNullableValue(),
+		c.Args.SqlNullableValue(),
+		c.Identity.SqlNullableValue(),
+		c.Command.SqlNullableValue(),
+		c.Binary.SqlNullableValue(),
+	)
 
 	if err != nil {
 		return -1, err
