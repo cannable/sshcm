@@ -1,5 +1,5 @@
 // Package cdb provides a database abstraction layer for storing and retrieving
-// SSH connection information for the ssh-cm utility.
+// SSH connection information for the sshcm utility.
 package cdb
 
 import (

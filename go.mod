@@ -1,4 +1,4 @@
-module github.com/cannable/ssh-cm-go
+module github.com/cannable/sshcm
 
 go 1.24.2
 

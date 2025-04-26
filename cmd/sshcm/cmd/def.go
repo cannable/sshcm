@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/cannable/ssh-cm-go/pkg/cdb"
+	"github.com/cannable/sshcm/pkg/cdb"
 	"github.com/spf13/cobra"
 )
 

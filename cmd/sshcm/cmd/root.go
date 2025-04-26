@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/cannable/ssh-cm-go/pkg/cdb"
+	"github.com/cannable/sshcm/pkg/cdb"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -30,7 +30,7 @@ var (
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
-		Use:   "ssh-cm",
+		Use:   "sshcm",
 		Short: "An SSH connection manager written in Go",
 		Long:  `A simple SSH manager, written in Go, that uses a Sqlite DB.`,
 	}
