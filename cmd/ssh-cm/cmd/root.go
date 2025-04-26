@@ -9,7 +9,6 @@ import (
 var (
 	connDbFilePath   string
 	debugMode        bool
-	cmdCnId          int64
 	cmdCnNickname    string
 	cmdCnHost        string
 	cmdCnUser        string

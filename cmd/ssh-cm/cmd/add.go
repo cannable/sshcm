@@ -43,7 +43,14 @@ func init() {
 	rootCmd.AddCommand(addCmd)
 
 	// Command flags
-	attachCommonCnFlags(addCmd, false)
+	addCmd.PersistentFlags().StringVarP(&cmdCnNickname, "nickname", "n", "", "Nickname for connection")
+	addCmd.PersistentFlags().StringVar(&cmdCnHost, "host", "", "Connection hostname (or IP address)")
+	addCmd.PersistentFlags().StringVarP(&cmdCnUser, "user", "u", "", "User name for connection")
+	addCmd.PersistentFlags().StringVarP(&cmdCnDescription, "description", "d", "", "Short description of the connection")
+	addCmd.PersistentFlags().StringVarP(&cmdCnArgs, "args", "a", "", "Arguments to pass to SSH command")
+	addCmd.PersistentFlags().StringVar(&cmdCnIdentity, "identity", "", "SSH identity to use for connection (a la '-i')")
+	addCmd.PersistentFlags().StringVarP(&cmdCnCommand, "command", "c", "", "SSH command to run")
+
 	addCmd.MarkPersistentFlagRequired("nickname")
 	addCmd.MarkPersistentFlagRequired("host")
 }

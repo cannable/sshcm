@@ -22,5 +22,4 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 
 	// Command flags
-	//attachCommonCnFlags(searchCmd, true)
 }
