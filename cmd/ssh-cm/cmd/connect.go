@@ -35,7 +35,7 @@ var connectCmd = &cobra.Command{
 		cmd.Flags().Visit(accSetCnFlags)
 
 		// Look up connection
-		c, err := getCnByIdOrNickname(args[0])
+		c, err := db.GetByIdOrNickname(args[0])
 
 		if err != nil {
 			if errors.Is(err, cdb.ErrConnNoId) {

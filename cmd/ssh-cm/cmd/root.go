@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -37,7 +36,8 @@ var (
 	}
 )
 
-// accSetCnFlags accumulates passed pflag names and stores them in the global variable cmdCnSetFlags.
+// accSetCnFlags accumulates passed pflag names and stores them in the global
+// slice cmdCnSetFlags.
 func accSetCnFlags(f *pflag.Flag) {
 	if cdb.IsValidProperty(f.Name) {
 		cmdCnSetFlags = append(cmdCnSetFlags, f.Name)
@@ -71,47 +71,6 @@ func bail(err error) {
 	}
 
 	panic(err)
-}
-
-func getCnByIdOrNickname(arg string) (cdb.Connection, error) {
-	var c cdb.Connection
-
-	// Get connection by ID or nickname
-	if err := cdb.ValidateId(arg); err == nil {
-		// Got a valid ID
-		id, err := strconv.Atoi(arg)
-
-		if err != nil {
-			return c, err
-		}
-
-		if debugMode {
-			fmt.Println(id, "is an id.")
-		}
-
-		// Get connection by id
-		c, err = db.Get(int64(id))
-
-		if err != nil {
-			return c, err
-		}
-	} else if err := cdb.ValidateNickname(arg); err == nil {
-		// Got a valid nickname
-		nickname := arg
-
-		if debugMode {
-			fmt.Println(nickname, "is a nickname.")
-		}
-
-		// Get connection by nickname
-		c, err = db.GetByProperty("nickname", nickname)
-
-		if err != nil {
-			return c, err
-		}
-	}
-
-	return c, nil
 }
 
 func getDbPath() string {

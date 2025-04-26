@@ -29,7 +29,7 @@ var removeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db = openDb()
 
-		c, err := getCnByIdOrNickname(args[0])
+		c, err := db.GetByIdOrNickname(args[0])
 
 		if err != nil {
 			if errors.Is(err, cdb.ErrConnNoId) {

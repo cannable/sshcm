@@ -34,7 +34,7 @@ var setCmd = &cobra.Command{
 		cmd.Flags().Visit(accSetCnFlags)
 
 		// Look up connection
-		c, err := getCnByIdOrNickname(oldNickname)
+		c, err := db.GetByIdOrNickname(oldNickname)
 
 		if err != nil {
 			bail(err)

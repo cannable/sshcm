@@ -2,6 +2,7 @@ package cdb
 
 import (
 	"database/sql"
+	"strconv"
 )
 
 type ConnectionDB struct {
@@ -139,6 +140,49 @@ func (conndb *ConnectionDB) GetAll() ([]*Connection, error) {
 	}
 
 	return cns, err
+}
+
+// GetByIdOrNickname looks up a connection by id or nickname, then returns a
+// Connection struct.
+// If the look up succeeded, err will be nil and it can be assumed that the
+// Connection is safe to use.
+func (conndb *ConnectionDB) GetByIdOrNickname(arg string) (Connection, error) {
+	var c Connection
+
+	// Get connection by ID or nickname
+	if err := ValidateId(arg); err == nil {
+		// Got a valid ID
+		id, err := strconv.Atoi(arg)
+
+		if err != nil {
+			return c, err
+		}
+
+		// Get connection by id
+		c, err = conndb.Get(int64(id))
+
+		if err != nil {
+			return c, err
+		}
+	} else {
+		err := ValidateNickname(arg)
+
+		if err == nil {
+			// Got a valid nickname
+			nickname := arg
+
+			// Get connection by nickname
+			c, err = conndb.GetByProperty("nickname", nickname)
+
+			if err != nil {
+				return c, err
+			}
+		} else {
+			return c, ErrInvalidIdOrNickname
+		}
+	}
+
+	return c, nil
 }
 
 func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connection, error) {
