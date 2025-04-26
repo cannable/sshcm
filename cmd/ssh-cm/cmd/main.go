@@ -3,12 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
-	"syscall"
 	"text/template"
 
 	"github.com/cannable/ssh-cm-go/pkg/cdb"
@@ -23,154 +21,6 @@ func accSetCnFlags(f *pflag.Flag) {
 	if cdb.IsValidProperty(f.Name) {
 		cmdCnSetFlags = append(cmdCnSetFlags, f.Name)
 	}
-}
-
-func addConnection() (int64, error) {
-	// Validate nickname follows the correct convention
-	err := cdb.ValidateNickname(setNewNickname)
-
-	if err != nil {
-		return -1, err
-	}
-
-	// Nicknames must be unique. See if this one exists.
-	exists := db.ExistsByProperty("nickname", cmdCnNickname)
-
-	if exists {
-		return -1, ErrNicknameExists
-	}
-
-	c := cdb.NewConnection()
-
-	c.Nickname.Value = cmdCnNickname
-	c.Host.Value = cmdCnHost
-	c.User.Value = cmdCnUser
-	c.Description.Value = cmdCnDescription
-	c.Args.Value = cmdCnArgs
-	c.Identity.Value = cmdCnIdentity
-	c.Command.Value = cmdCnCommand
-
-	if debugMode {
-		fmt.Println("Adding connection:")
-		printConnection(&c, false)
-	}
-
-	id, err := db.Add(&c)
-
-	if err != nil {
-		return -1, err
-	}
-
-	return id, nil
-}
-
-func connect(arg string) error {
-	c, err := getCnByIdOrNickname(arg)
-
-	if err != nil {
-		return err
-	}
-
-	if debugMode {
-		fmt.Println("Connecting to ", c)
-	}
-
-	// Get effective SSH command (binary)
-	cmd, err := db.GetEffectiveValue(c.Binary.Value, "binary")
-
-	if err != nil {
-		return err
-	}
-
-	// If the program default is empty, use 'ssh'
-	if strings.Compare(cmd, "") == 0 {
-		cmd = "ssh"
-	}
-
-	// Make sure ssh binary resolves in PATH
-	execBin, err := exec.LookPath("ssh")
-
-	if err != nil {
-		return err
-	}
-
-	var execArgs = []string{execBin}
-
-	// Append arguments
-	args, err := db.GetEffectiveValue(c.Args.Value, "args")
-
-	if err != nil {
-		return err
-	}
-
-	if strings.Compare(args, "") != 0 {
-		// TODO: This is probably really mangled and won't work.
-		// Figure out a way to reconstitute flat arguments from the DB.
-		execArgs = append(execArgs, args)
-	}
-
-	// Append identity
-	identity, err := db.GetEffectiveValue(c.Identity.Value, "identity")
-
-	if err != nil {
-		return err
-	}
-
-	if strings.Compare(identity, "") != 0 {
-		execArgs = append(execArgs, "-i", identity)
-	}
-
-	// Host & user
-	host := c.Host.Value
-	user, err := db.GetEffectiveValue(c.User.Value, "user")
-
-	if err != nil {
-		return err
-	}
-
-	if strings.Compare(user, "") != 0 {
-		execArgs = append(execArgs, user+"@"+host)
-	} else {
-		execArgs = append(execArgs, host)
-	}
-
-	if debugMode {
-		fmt.Println("connection details:")
-		fmt.Printf("binary:   '%s'\n", cmd)
-		fmt.Printf("arguments:'%s'\n", execArgs)
-	}
-
-	// Connect
-	execEnv := os.Environ()
-
-	err = syscall.Exec(execBin, execArgs, execEnv)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func deleteConnection(arg string) error {
-	c, err := getCnByIdOrNickname(arg)
-
-	if err != nil {
-		return err
-	}
-
-	if debugMode {
-		fmt.Println("Deleting connection", c)
-	}
-
-	// Delete connection
-	err = c.Delete()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func getCnByIdOrNickname(arg string) (cdb.Connection, error) {
@@ -193,7 +43,7 @@ func getCnByIdOrNickname(arg string) (cdb.Connection, error) {
 		c, err = db.Get(int64(id))
 
 		if err != nil {
-			return c, cdb.ErrConnNoId
+			return c, err
 		}
 	} else if err := cdb.ValidateNickname(arg); err == nil {
 		// Got a valid nickname
@@ -207,7 +57,7 @@ func getCnByIdOrNickname(arg string) (cdb.Connection, error) {
 		c, err = db.GetByProperty("nickname", nickname)
 
 		if err != nil {
-			return c, cdb.ErrConnNoNickname
+			return c, err
 		}
 	}
 
@@ -262,69 +112,6 @@ func isValidIdOrNickname(s string) bool {
 	return false
 }
 
-func listConnections(cns []*cdb.Connection, wide bool) {
-	// Assemble output template
-	t := `{{ printf "%-4s" "ID" }} | `
-	t = t + `{{ printf "%-15s" "Nickname" }} | `
-	t = t + `{{ printf "%-10s" "User" }} | `
-	t = t + `{{ printf "%-15s" "Host" }} | `
-	t = t + `{{ printf "%-20s" "Description" }} | `
-
-	if wide {
-		t = t + `{{ printf "%-10s" "Args" }} | `
-		t = t + `{{ printf "%-10s" "Identity" }} | `
-		t = t + `{{ printf "%-10s" "Command" }} | `
-		t = t + `{{ printf "%-10s"  "Binary" }} | `
-	}
-
-	t = t + "\n{{ range . }}"
-	t = t + `{{ .Id.StringTrimmed 4 }} | `
-	t = t + `{{ .Nickname.StringTrimmed 15 }} | `
-	t = t + `{{ .User.StringTrimmed 10 }} | `
-	t = t + `{{ .Host.StringTrimmed 15 }} | `
-	t = t + `{{ .Description.StringTrimmed 20 }} | `
-
-	if wide {
-		t = t + `{{ .Args.StringTrimmed 10 }} | `
-		t = t + `{{ .Identity.StringTrimmed 10 }} | `
-		t = t + `{{ .Command.StringTrimmed 10 }} | `
-		t = t + `{{ .Binary.StringTrimmed 10 }} | `
-	}
-
-	t = t + "\n{{ end }}"
-
-	tmpl, err := template.New("connection").Parse(t)
-
-	if err != nil {
-		panic(err)
-	}
-
-	// Run templates
-	err = tmpl.Execute(os.Stdout, cns)
-
-	if err != nil {
-		panic(err)
-	}
-}
-
-func listDefaults() error {
-	fmt.Println("Program default settings:")
-
-	for i := range cdb.ValidDefaults {
-		def := cdb.ValidDefaults[i]
-
-		val, err := db.GetDefault(def)
-
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("%-10s: %s\n", def, val)
-	}
-
-	return nil
-}
-
 func openDb() cdb.ConnectionDB {
 	path := getDbPath()
 
@@ -377,85 +164,27 @@ func printConnection(c *cdb.Connection, printHeader bool) {
 	}
 }
 
-func setConnection(arg string) error {
-	c, err := getCnByIdOrNickname(arg)
-
-	if err != nil {
-		// Connection wasn't found
-		return cdb.ErrConnectionNotFound
+func bail(err error) {
+	minorErrors := []error{
+		cdb.ErrConnNoDb,
+		cdb.ErrConnNoId,
+		cdb.ErrConnNoNickname,
+		cdb.ErrConnectionNotFound,
+		cdb.ErrDbVersionNotRecognized,
+		cdb.ErrDuplicateNickname,
+		cdb.ErrIdNotExist,
+		cdb.ErrInvalidConnectionProperty,
+		cdb.ErrInvalidDefault,
+		cdb.ErrInvalidId,
+		cdb.ErrNicknameLetter,
+		cdb.ErrPropertyInvalid,
+		cdb.ErrSchemaVerInvalid,
 	}
 
-	// Show original values if in debug mode
-	if debugMode {
-		fmt.Println("Current connection settings:")
-		printConnection(&c, false)
+	if slices.Contains(minorErrors, err) && !debugMode {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
 	}
 
-	// Determine if we're renaming
-	if slices.Contains(cmdCnSetFlags, "nickname") {
-		// Validate nickname follows the correct convention
-		err = cdb.ValidateNickname(cmdCnNickname)
-
-		if err != nil {
-			return err
-		}
-
-		// See if the new nickname exists already.
-		exists := db.ExistsByProperty("nickname", cmdCnNickname)
-
-		if exists {
-			return ErrNicknameExists
-		}
-
-		c.Nickname = &cdb.NicknameProperty{Value: cmdCnNickname}
-	}
-
-	// Update hostname, if it was passed
-	if slices.Contains(cmdCnSetFlags, "host") {
-		c.Host.Value = cmdCnHost
-	}
-
-	// Update user, if it was passed
-	if slices.Contains(cmdCnSetFlags, "user") {
-		c.User.Value = cmdCnUser
-	}
-
-	// Update description, if it was passed
-	if slices.Contains(cmdCnSetFlags, "description") {
-		c.Description.Value = cmdCnDescription
-	}
-
-	// Update args, if it was passed
-	if slices.Contains(cmdCnSetFlags, "args") {
-		c.Args.Value = cmdCnArgs
-	}
-
-	// Update identity, if it was passed
-	if slices.Contains(cmdCnSetFlags, "identity") {
-		c.Identity.Value = cmdCnIdentity
-	}
-
-	// Update command, if it was passed
-	if slices.Contains(cmdCnSetFlags, "command") {
-		c.Command.Value = cmdCnCommand
-	}
-
-	// Show to-be-updated values if in debug mode
-	if debugMode {
-		fmt.Println("\nNew connection settings:")
-		printConnection(&c, false)
-		fmt.Println("")
-	}
-
-	err = c.Update()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func setDefault(setting string, value string) error {
-	return db.SetDefault(setting, value)
+	panic(err)
 }

@@ -1,8 +1,29 @@
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/cannable/ssh-cm-go/pkg/cdb"
 	"github.com/spf13/cobra"
 )
+
+func listDefaults() error {
+	fmt.Println("Program default settings:")
+
+	for i := range cdb.ValidDefaults {
+		def := cdb.ValidDefaults[i]
+
+		val, err := db.GetDefault(def)
+
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%-10s: %s\n", def, val)
+	}
+
+	return nil
+}
 
 // defaultsCmd represents the defaults command
 var defaultsCmd = &cobra.Command{

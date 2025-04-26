@@ -30,7 +30,7 @@ var defCmd = &cobra.Command{
 		setting := args[0]
 		value := args[1]
 
-		err := setDefault(setting, value)
+		err := db.SetDefault(setting, value)
 
 		if err != nil {
 			panic(err)

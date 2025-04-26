@@ -29,7 +29,32 @@ var removeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db = openDb()
 
-		err := deleteConnection(args[0])
+		c, err := getCnByIdOrNickname(args[0])
+
+		if err != nil {
+			if errors.Is(err, cdb.ErrConnNoId) {
+				fmt.Fprintln(os.Stderr, "ID does not exist.")
+				os.Exit(1)
+			} else if errors.Is(err, cdb.ErrConnNoNickname) {
+				fmt.Fprintln(os.Stderr, "Nickname does not exist.")
+				os.Exit(1)
+			} else if errors.Is(err, cdb.ErrConnectionNotFound) {
+				fmt.Fprintln(os.Stderr, "Connection not found.")
+				os.Exit(1)
+			}
+			panic(err)
+		}
+
+		if debugMode {
+			fmt.Println("Deleting connection", c)
+		}
+
+		// Delete connection
+		err = c.Delete()
+
+		if err != nil {
+			panic(err)
+		}
 
 		if err != nil {
 			if errors.Is(err, cdb.ErrConnNoId) {

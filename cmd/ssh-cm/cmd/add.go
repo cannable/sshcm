@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -19,18 +18,41 @@ var addCmd = &cobra.Command{
 		db = openDb()
 
 		cmd.Flags().Visit(accSetCnFlags)
-		id, err := addConnection()
+
+		// Validate nickname follows the correct convention
+		err := cdb.ValidateNickname(cmdCnNickname)
 
 		if err != nil {
-			if errors.Is(err, cdb.ErrNicknameLetter) {
-				fmt.Fprintln(os.Stderr, "Nickname must begin with a letter.")
-				os.Exit(1)
-			} else if errors.Is(err, ErrNicknameExists) {
-				fmt.Fprintf(os.Stderr, "Can't add '%s'. Nickname already exists.\n", cmdCnNickname)
-				os.Exit(1)
-			} else {
-				panic(err)
-			}
+			bail(err)
+		}
+
+		// Nicknames must be unique. See if this one exists.
+		exists := db.ExistsByProperty("nickname", cmdCnNickname)
+
+		if exists {
+			fmt.Fprintf(os.Stderr, "Can't add '%s'. Nickname already exists.\n", cmdCnNickname)
+			os.Exit(1)
+		}
+
+		c := cdb.NewConnection()
+
+		c.Nickname.Value = cmdCnNickname
+		c.Host.Value = cmdCnHost
+		c.User.Value = cmdCnUser
+		c.Description.Value = cmdCnDescription
+		c.Args.Value = cmdCnArgs
+		c.Identity.Value = cmdCnIdentity
+		c.Command.Value = cmdCnCommand
+
+		if debugMode {
+			fmt.Println("Adding connection:")
+			printConnection(&c, false)
+		}
+
+		id, err := db.Add(&c)
+
+		if err != nil {
+			bail(err)
 		}
 
 		fmt.Printf("Added new connection with id %d.\n", id)
