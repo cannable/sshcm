@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
+	"slices"
 	"syscall"
 
 	"github.com/cannable/ssh-cm-go/pkg/cdb"
@@ -38,52 +37,58 @@ var connectCmd = &cobra.Command{
 		c, err := db.GetByIdOrNickname(args[0])
 
 		if err != nil {
-			if errors.Is(err, cdb.ErrConnNoId) {
-				fmt.Fprintln(os.Stderr, "ID does not exist.")
-				os.Exit(1)
-			} else if errors.Is(err, cdb.ErrConnNoNickname) {
-				fmt.Fprintln(os.Stderr, "Nickname does not exist.")
-				os.Exit(1)
-			} else if errors.Is(err, cdb.ErrConnectionNotFound) {
-				fmt.Fprintln(os.Stderr, "Connection not found.")
-				os.Exit(1)
-			}
-			panic(err)
+			bail(err)
+		}
+
+		// Override connection settings with user-supplied arguments
+		if slices.Contains(cmdCnSetFlags, "user") {
+			c.User.Value = cmdCnUser
+		}
+
+		if slices.Contains(cmdCnSetFlags, "args") {
+			c.Args.Value = cmdCnArgs
+		}
+
+		if slices.Contains(cmdCnSetFlags, "identity") {
+			c.Identity.Value = cmdCnIdentity
+		}
+
+		if slices.Contains(cmdCnSetFlags, "command") {
+			c.Command.Value = cmdCnCommand
 		}
 
 		if debugMode {
 			fmt.Println("Connecting to ", c)
 		}
 
-		// Get effective SSH sshCmd (binary)
-		sshCmd, err := db.GetEffectiveValue(c.Binary.Value, "binary")
+		// Get effective SSH command
+		sshCmd, err := db.GetEffectiveValue(c.Command.Value, "command")
 
 		if err != nil {
-			panic(err)
+			bail(err)
 		}
 
 		// If the program default is empty, use 'ssh'
-		if strings.Compare(sshCmd, "") == 0 {
+		if len(sshCmd) < 1 {
 			sshCmd = "ssh"
 		}
 
 		// Make sure ssh binary resolves in PATH
-		execBin, err := exec.LookPath("ssh")
+		execBin, err := exec.LookPath(sshCmd)
 
 		if err != nil {
 			panic(err)
 		}
 
-		var execArgs = []string{execBin}
-
 		// Append arguments
+		var execArgs = []string{execBin}
 		sshArgs, err := db.GetEffectiveValue(c.Args.Value, "args")
 
 		if err != nil {
 			panic(err)
 		}
 
-		if strings.Compare(sshArgs, "") != 0 {
+		if len(sshArgs) > 0 {
 			// TODO: This is probably really mangled and won't work.
 			// Figure out a way to reconstitute flat arguments from the DB.
 			execArgs = append(execArgs, sshArgs)
@@ -96,7 +101,7 @@ var connectCmd = &cobra.Command{
 			panic(err)
 		}
 
-		if strings.Compare(identity, "") != 0 {
+		if len(identity) > 0 {
 			execArgs = append(execArgs, "-i", identity)
 		}
 
@@ -108,7 +113,7 @@ var connectCmd = &cobra.Command{
 			panic(err)
 		}
 
-		if strings.Compare(user, "") != 0 {
+		if len(user) > 0 {
 			execArgs = append(execArgs, user+"@"+host)
 		} else {
 			execArgs = append(execArgs, host)
@@ -116,7 +121,7 @@ var connectCmd = &cobra.Command{
 
 		if debugMode {
 			fmt.Println("connection details:")
-			fmt.Printf("binary:   '%s'\n", sshCmd)
+			fmt.Printf("command:   '%s'\n", sshCmd)
 			fmt.Printf("arguments:'%s'\n", execArgs)
 		}
 
