@@ -9,9 +9,13 @@ import (
 
 // defCmd represents the def command
 var defCmd = &cobra.Command{
-	Use:     "def",
-	Short:   "Set program default settings",
-	Long:    `Set program default settings.`,
+	Use:   "def setting value",
+	Short: "Set program default settings",
+	Long: `
+Set program default settings.`,
+	Example: `
+sshcm def user asdf
+`,
 	Aliases: []string{},
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(2)(cmd, args); err != nil {

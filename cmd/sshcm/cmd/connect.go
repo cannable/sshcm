@@ -13,9 +13,19 @@ import (
 
 // connectCmd represents the connect command
 var connectCmd = &cobra.Command{
-	Use:     "connect",
-	Short:   "Start a connection",
-	Long:    `Start a connection.`,
+	Use:   "connect { id | nickname }",
+	Short: "Start a connection",
+	Long: `
+Start a connection.
+
+A connection ID or nickname must be specified as the only positional argument.
+
+Some connection settings (ex. command) can be overridden at runtime by passing flags.`,
+	Example: `
+sshcm connect something
+sshcm c 22
+sshcm c something --user=someone
+`,
 	Aliases: []string{"c"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(1)(cmd, args); err != nil {

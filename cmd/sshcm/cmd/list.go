@@ -12,9 +12,12 @@ var (
 	listAll bool
 
 	listCmd = &cobra.Command{
-		Use:     "list",
-		Short:   "List all connections",
-		Long:    `List all connections.`,
+		Use:   "list",
+		Short: "List all connections",
+		Long: `
+List all connections.`,
+		Example: `
+sshcm list`,
 		Aliases: []string{"l"},
 		Run: func(cmd *cobra.Command, args []string) {
 			db = openDb()

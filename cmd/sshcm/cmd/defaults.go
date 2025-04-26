@@ -29,7 +29,10 @@ func listDefaults() error {
 var defaultsCmd = &cobra.Command{
 	Use:   "defaults",
 	Short: "List program defaults",
-	Long:  `List program defaults.`,
+	Long: `
+List program defaults.`,
+	Example: `
+sshcm defaults`,
 	Run: func(cmd *cobra.Command, args []string) {
 		db = openDb()
 

@@ -10,9 +10,15 @@ import (
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:     "add",
-	Short:   "Add a connection",
-	Long:    `Add a connection`,
+	Use:   "add",
+	Short: "Add a connection",
+	Long: `
+Add a new connection.
+
+All connection settings are expected to be passed via flags. Most are optional,
+but a nickname and host are required. The nickname must be unique.`,
+	Example: `
+sshcm add --nickname something --user me --host 127.0.0.1`,
 	Aliases: []string{"a"},
 	Run: func(cmd *cobra.Command, args []string) {
 		db = openDb()

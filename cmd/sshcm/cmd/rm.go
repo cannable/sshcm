@@ -11,9 +11,15 @@ import (
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:     "remove",
-	Short:   "Remove connection",
-	Long:    `Remove connection.`,
+	Use:   "remove { id | nickname }",
+	Short: "Remove a connection",
+	Long: `
+Remove a connection.
+
+A valid connection ID or nickname must be specified.`,
+	Example: `
+sshcm rm asdf
+sshcm delete 42`,
 	Aliases: []string{"rm", "delete", "del"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(1)(cmd, args); err != nil {

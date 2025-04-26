@@ -9,9 +9,16 @@ import (
 
 // getCmd represents the get command
 var getCmd = &cobra.Command{
-	Use:     "get",
-	Short:   "Print existing connection details",
-	Long:    `Print existing connection details.`,
+	Use:   "get { id | nickname }",
+	Short: "Print existing connection settings",
+	Long: `
+Print connection settings.
+
+A valid connection ID or nickname must be specified.`,
+	Example: `
+sshcm get asdf
+sshcm g 42
+`,
 	Aliases: []string{"g"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(1)(cmd, args); err != nil {

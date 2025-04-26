@@ -11,9 +11,16 @@ import (
 
 // setCmd represents the set command
 var setCmd = &cobra.Command{
-	Use:     "set",
-	Short:   "Alter an existing connection",
-	Long:    `Alter an existing connection.`,
+	Use:   "set { id | nickname }",
+	Short: "Change connection settings",
+	Long: `Change connection settings.
+A valid ID or nickname must be specified.
+
+A connection can be renamed by passing --nickname="new_nickname".
+`,
+	Example: `
+sshcm set 42 --user="blarg"
+sshcm s asdf --nickname fdsa`,
 	Aliases: []string{"s"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(1)(cmd, args); err != nil {
