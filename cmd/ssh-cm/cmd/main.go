@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -100,18 +99,6 @@ func getDbPath() string {
 	return filepath.Join(homePath, "/.config/"+dbFileName)
 }
 
-func isValidIdOrNickname(s string) bool {
-	// Determine if the passed string is a nickname or id
-	if err := cdb.ValidateId(s); err == nil {
-		// Got a valid id
-		return true
-	} else if err := cdb.ValidateNickname(s); err == nil {
-		// Got a valid nickname
-		return true
-	}
-	return false
-}
-
 func openDb() cdb.ConnectionDB {
 	path := getDbPath()
 
@@ -162,29 +149,4 @@ func printConnection(c *cdb.Connection, printHeader bool) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func bail(err error) {
-	minorErrors := []error{
-		cdb.ErrConnNoDb,
-		cdb.ErrConnNoId,
-		cdb.ErrConnNoNickname,
-		cdb.ErrConnectionNotFound,
-		cdb.ErrDbVersionNotRecognized,
-		cdb.ErrDuplicateNickname,
-		cdb.ErrIdNotExist,
-		cdb.ErrInvalidConnectionProperty,
-		cdb.ErrInvalidDefault,
-		cdb.ErrInvalidId,
-		cdb.ErrNicknameLetter,
-		cdb.ErrPropertyInvalid,
-		cdb.ErrSchemaVerInvalid,
-	}
-
-	if slices.Contains(minorErrors, err) && !debugMode {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
-	}
-
-	panic(err)
 }

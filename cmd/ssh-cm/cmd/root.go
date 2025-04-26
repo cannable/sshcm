@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"slices"
 
+	"github.com/cannable/ssh-cm-go/pkg/cdb"
 	"github.com/spf13/cobra"
 )
 
@@ -25,6 +28,35 @@ var (
 		Long:  `A simple SSH manager, written in Go, that uses a Sqlite DB.`,
 	}
 )
+
+// bail reports somewhat-expected errors to the user in a "friendly" way.
+// If the passed error is known and originates from the cdb module, this
+// function will print the error to stderr and exit(1).
+// If the error was not known, the program will panic.
+func bail(err error) {
+	minorErrors := []error{
+		cdb.ErrConnNoDb,
+		cdb.ErrConnNoId,
+		cdb.ErrConnNoNickname,
+		cdb.ErrConnectionNotFound,
+		cdb.ErrDbVersionNotRecognized,
+		cdb.ErrDuplicateNickname,
+		cdb.ErrIdNotExist,
+		cdb.ErrInvalidConnectionProperty,
+		cdb.ErrInvalidDefault,
+		cdb.ErrInvalidId,
+		cdb.ErrNicknameLetter,
+		cdb.ErrPropertyInvalid,
+		cdb.ErrSchemaVerInvalid,
+	}
+
+	if slices.Contains(minorErrors, err) && !debugMode {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
+	}
+
+	panic(err)
+}
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.

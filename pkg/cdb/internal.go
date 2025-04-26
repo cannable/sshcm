@@ -56,10 +56,6 @@ func marshallConnection(row *sql.Row) (Connection, error) {
 	// Use the command from the DB if it exists
 	if command.Valid {
 		c.Command.Value = command.String
-
-		if err != nil {
-			return c, err
-		}
 	}
 
 	// Use the binary from the DB if it exists

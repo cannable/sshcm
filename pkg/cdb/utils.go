@@ -62,3 +62,15 @@ func ValidateId(id string) error {
 
 	return nil
 }
+
+func IsValidIdOrNickname(s string) bool {
+	// Determine if the passed string is a nickname or id
+	if err := ValidateId(s); err == nil {
+		// Got a valid id
+		return true
+	} else if err := ValidateNickname(s); err == nil {
+		// Got a valid nickname
+		return true
+	}
+	return false
+}

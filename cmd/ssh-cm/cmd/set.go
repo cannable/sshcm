@@ -20,7 +20,7 @@ var setCmd = &cobra.Command{
 			return err
 		}
 
-		if !isValidIdOrNickname(args[0]) {
+		if !cdb.IsValidIdOrNickname(args[0]) {
 			return ErrNoIdOrNickname
 		}
 
