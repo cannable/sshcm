@@ -15,6 +15,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const Version = "v0.9"
+
 var db cdb.ConnectionDB
 
 func accSetCnFlags(f *pflag.Flag) {
