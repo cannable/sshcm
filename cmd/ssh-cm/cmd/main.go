@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -32,7 +33,13 @@ func attachCommonCnFlags(cmd *cobra.Command, addId bool) {
 	}
 }
 
-func addConnection(flags *pflag.FlagSet) (int64, error) {
+func accSetCnFlags(f *pflag.Flag) {
+	if cdb.IsValidProperty(f.Name) {
+		cmdCnSetFlags = append(cmdCnSetFlags, f.Name)
+	}
+}
+
+func addConnection() (int64, error) {
 	// Validate nickname follows the correct convention
 	err := cdb.ValidateNickname(setNewNickname)
 
@@ -71,7 +78,7 @@ func addConnection(flags *pflag.FlagSet) (int64, error) {
 	return id, nil
 }
 
-func connect(arg string, flags *pflag.FlagSet) error {
+func connect(arg string) error {
 	c, err := getCnByIdOrNickname(arg)
 
 	if err != nil {
@@ -79,13 +86,11 @@ func connect(arg string, flags *pflag.FlagSet) error {
 	}
 
 	if debugMode {
-		//fmt.Printf("Connecting to %s (%d)...\n", c.Nickname.Value, c.Id.Value)
 		fmt.Println("Connecting to ", c)
 	}
 
 	// Get effective SSH command (binary)
 	cmd, err := db.GetEffectiveValue(c.Binary.Value, "binary")
-	fmt.Println("asdf")
 
 	if err != nil {
 		return err
@@ -161,7 +166,7 @@ func connect(arg string, flags *pflag.FlagSet) error {
 	return nil
 }
 
-func deleteConnection(arg string, flags *pflag.FlagSet) error {
+func deleteConnection(arg string) error {
 	c, err := getCnByIdOrNickname(arg)
 
 	if err != nil {
@@ -169,7 +174,7 @@ func deleteConnection(arg string, flags *pflag.FlagSet) error {
 	}
 
 	if debugMode {
-		fmt.Printf("Deleting connection %s (%d).\n", c.Nickname, c.Id)
+		fmt.Println("Deleting connection", c)
 	}
 
 	// Delete connection
@@ -260,7 +265,7 @@ func getDbPath() string {
 }
 
 func isValidIdOrNickname(s string) bool {
-	// Determine if the passed sument is a nickname or id
+	// Determine if the passed string is a nickname or id
 	if err := cdb.ValidateId(s); err == nil {
 		// Got a valid id
 		return true
@@ -268,7 +273,6 @@ func isValidIdOrNickname(s string) bool {
 		// Got a valid nickname
 		return true
 	}
-
 	return false
 }
 
@@ -387,28 +391,12 @@ func printConnection(c *cdb.Connection, printHeader bool) {
 	}
 }
 
-func setConnection(flags *pflag.FlagSet) error {
-	var c cdb.Connection
-	var err error
+func setConnection(arg string) error {
+	c, err := getCnByIdOrNickname(arg)
 
-	// Did we get an ID or nickname?
-	if cmdCnId > 0 {
-		// Got an ID. Get the connection.
-		c, err = db.Get(cmdCnId)
-
-		if err != nil {
-			return err
-		}
-	} else if strings.Compare(cmdCnNickname, "") != 0 {
-		// Got a nickname. Get the connection.
-		c, err = db.GetByProperty("nickname", cmdCnNickname)
-
-		if err != nil {
-			return err
-		}
-	} else {
-		// Got neither... oops
-		return ErrNoIdOrNickname
+	if err != nil {
+		// Connection wasn't found
+		return cdb.ErrConnectionNotFound
 	}
 
 	// Show original values if in debug mode
@@ -418,56 +406,51 @@ func setConnection(flags *pflag.FlagSet) error {
 	}
 
 	// Determine if we're renaming
-	if strings.Compare(setNewNickname, "") != 0 {
+	if slices.Contains(cmdCnSetFlags, "nickname") {
 		// Validate nickname follows the correct convention
-		err = cdb.ValidateNickname(setNewNickname)
+		err = cdb.ValidateNickname(cmdCnNickname)
 
 		if err != nil {
 			return err
 		}
 
 		// See if the new nickname exists already.
-		exists := db.ExistsByProperty("nickname", setNewNickname)
+		exists := db.ExistsByProperty("nickname", cmdCnNickname)
 
 		if exists {
 			return ErrNicknameExists
 		}
 
-		c.Nickname = &cdb.NicknameProperty{Value: setNewNickname}
+		c.Nickname = &cdb.NicknameProperty{Value: cmdCnNickname}
 	}
 
 	// Update hostname, if it was passed
-	if strings.Compare(cmdCnHost, "") != 0 {
-		c.Host.Value = cmdCnHost
-	}
-
-	// Update host, if it was passed
-	if strings.Compare(cmdCnHost, "") != 0 {
+	if slices.Contains(cmdCnSetFlags, "host") {
 		c.Host.Value = cmdCnHost
 	}
 
 	// Update user, if it was passed
-	if strings.Compare(cmdCnUser, "") != 0 {
+	if slices.Contains(cmdCnSetFlags, "user") {
 		c.User.Value = cmdCnUser
 	}
 
 	// Update description, if it was passed
-	if strings.Compare(cmdCnDescription, "") != 0 {
+	if slices.Contains(cmdCnSetFlags, "description") {
 		c.Description.Value = cmdCnDescription
 	}
 
 	// Update args, if it was passed
-	if strings.Compare(cmdCnArgs, "") != 0 {
+	if slices.Contains(cmdCnSetFlags, "args") {
 		c.Args.Value = cmdCnArgs
 	}
 
 	// Update identity, if it was passed
-	if strings.Compare(cmdCnIdentity, "") != 0 {
+	if slices.Contains(cmdCnSetFlags, "identity") {
 		c.Identity.Value = cmdCnIdentity
 	}
 
 	// Update command, if it was passed
-	if strings.Compare(cmdCnCommand, "") != 0 {
+	if slices.Contains(cmdCnSetFlags, "command") {
 		c.Command.Value = cmdCnCommand
 	}
 

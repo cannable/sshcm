@@ -17,6 +17,7 @@ var (
 	cmdCnArgs        string
 	cmdCnIdentity    string
 	cmdCnCommand     string
+	cmdCnSetFlags    []string
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
