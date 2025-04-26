@@ -12,7 +12,7 @@ var getCmd = &cobra.Command{
 	Use:     "get",
 	Short:   "Print existing connection details",
 	Long:    `Print existing connection details.`,
-	Aliases: []string{"s"},
+	Aliases: []string{"g"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(1)(cmd, args); err != nil {
 			return err

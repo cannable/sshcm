@@ -13,8 +13,8 @@ var (
 
 	listCmd = &cobra.Command{
 		Use:     "list",
-		Short:   "list all connections",
-		Long:    `list all connections.`,
+		Short:   "List all connections",
+		Long:    `List all connections.`,
 		Aliases: []string{"l"},
 		Run: func(cmd *cobra.Command, args []string) {
 			db = openDb()

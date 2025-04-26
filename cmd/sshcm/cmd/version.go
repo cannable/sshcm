@@ -8,10 +8,9 @@ import (
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:     "version",
-	Short:   "Print program version",
-	Long:    `Print program version and exit.`,
-	Aliases: []string{"l"},
+	Use:   "version",
+	Short: "Print program version",
+	Long:  `Print program version and exit.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("SSH Connection Manager", Version)
 	},
