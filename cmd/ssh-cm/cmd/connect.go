@@ -73,7 +73,7 @@ var connectCmd = &cobra.Command{
 			sshCmd = "ssh"
 		}
 
-		// Make sure ssh binary resolves in PATH
+		// Make sure ssh command resolves in PATH
 		execBin, err := exec.LookPath(sshCmd)
 
 		if err != nil {

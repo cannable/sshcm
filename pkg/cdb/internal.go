@@ -9,10 +9,10 @@ func marshallConnection(row *sql.Row) (Connection, error) {
 	c := NewConnection()
 
 	var id sql.NullInt64
-	var nickname, host, user, description, args, identity, command, binary sql.NullString
+	var nickname, host, user, description, args, identity, command sql.NullString
 
 	// Get connection details from DB
-	err := row.Scan(&id, &nickname, &host, &user, &description, &args, &identity, &command, &binary)
+	err := row.Scan(&id, &nickname, &host, &user, &description, &args, &identity, &command)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -56,11 +56,6 @@ func marshallConnection(row *sql.Row) (Connection, error) {
 	// Use the command from the DB if it exists
 	if command.Valid {
 		c.Command.Value = command.String
-	}
-
-	// Use the binary from the DB if it exists
-	if binary.Valid {
-		c.Binary.Value = binary.String
 	}
 
 	return c, err

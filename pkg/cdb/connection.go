@@ -103,8 +103,7 @@ func (c Connection) Update() error {
 			description = $5,
 			args = $6,
 			identity = $7,
-			command = $8,
-			binary = $9
+			command = $8
 		WHERE id = $1
 		`,
 		c.Id.SqlNullableValue(),
@@ -115,7 +114,6 @@ func (c Connection) Update() error {
 		c.Args.SqlNullableValue(),
 		c.Identity.SqlNullableValue(),
 		c.Command.SqlNullableValue(),
-		c.Binary.SqlNullableValue(),
 	)
 
 	return err

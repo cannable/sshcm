@@ -6,15 +6,14 @@ import (
 	"unicode"
 )
 
-var ValidDefaults = [5]string{
+var ValidDefaults = [4]string{
 	"args",
-	"binary",
 	"command",
 	"identity",
 	"user",
 }
 
-var ValidProperties = [8]string{
+var ValidProperties = [7]string{
 	"nickname",
 	"host",
 	"user",
@@ -22,7 +21,6 @@ var ValidProperties = [8]string{
 	"args",
 	"identity",
 	"command",
-	"binary",
 }
 
 func IsValidDefault(name string) bool {

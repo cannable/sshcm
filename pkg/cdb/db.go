@@ -29,8 +29,7 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 			description,
 			args,
 			identity,
-			command,
-			binary
+			command
 		) VALUES (
 			$1,
 			$2,
@@ -38,8 +37,7 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 			$4,
 			$5,
 			$6,
-			$7,
-			$8
+			$7
 		)`,
 		c.Nickname.SqlNullableValue(),
 		c.Host.SqlNullableValue(),
@@ -48,7 +46,6 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 		c.Args.SqlNullableValue(),
 		c.Identity.SqlNullableValue(),
 		c.Command.SqlNullableValue(),
-		c.Binary.SqlNullableValue(),
 	)
 
 	if err != nil {
@@ -101,8 +98,7 @@ func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
 			description,
 			args,
 			identity,
-			command,
-			binary
+			command
 		FROM connections
 		WHERE id = $1
 	`, id)
@@ -202,8 +198,7 @@ func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connec
 			description,
 			args,
 			identity,
-			command,
-			binary
+			command
 		FROM connections
 		WHERE `+property+" = $1", value)
 
