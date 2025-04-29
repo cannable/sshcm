@@ -101,6 +101,7 @@ func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
 			command
 		FROM connections
 		WHERE id = $1
+		ORDER BY id;
 	`, id)
 
 	c, err := marshallConnection(row)
