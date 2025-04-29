@@ -13,8 +13,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const Version = "v1.2.0-alpha.1"
-
 var (
 	db               cdb.ConnectionDB
 	connDbFilePath   string
