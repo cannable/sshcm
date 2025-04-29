@@ -1,7 +1,10 @@
 package cdb
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"io"
 )
 
 // A Connection is an SSH connection, as stored in a ConnectionDB.
@@ -58,6 +61,31 @@ func (c Connection) Delete() error {
 		WHERE id = $1
 		`,
 		c.Id.SqlNullableValue())
+
+	return err
+}
+
+func (c Connection) WriteCSV(w *csv.Writer) error {
+	return w.Write([]string{
+		c.Id.String(),
+		c.Nickname.String(),
+		c.User.String(),
+		c.Host.String(),
+		c.Description.String(),
+		c.Args.String(),
+		c.Identity.String(),
+		c.Command.String(),
+	})
+}
+
+func (c Connection) WriteJSON(w io.Writer) error {
+	j, err := json.Marshal(c)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(j)
 
 	return err
 }
