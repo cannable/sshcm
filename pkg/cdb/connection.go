@@ -111,7 +111,7 @@ func (c Connection) WriteRecordShort(w io.Writer) error {
 
 func (c Connection) WriteCSV(w *csv.Writer) error {
 	return w.Write([]string{
-		string(c.Id),
+		fmt.Sprintf("%d", c.Id),
 		c.Nickname,
 		c.User,
 		c.Host,
