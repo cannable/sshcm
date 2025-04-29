@@ -73,7 +73,7 @@ func (c Connection) Delete() error {
         DELETE FROM connections
 		WHERE id = $1
 		`,
-		misc.SqlNullableInt64(c.Id))
+		sqlNullableInt64(c.Id))
 
 	return err
 }
@@ -205,14 +205,14 @@ func (c Connection) Update() error {
 			command = $8
 		WHERE id = $1
 		`,
-		misc.SqlNullableInt64(c.Id),
-		misc.SqlNullableString(c.Nickname),
-		misc.SqlNullableString(c.Host),
-		misc.SqlNullableString(c.User),
-		misc.SqlNullableString(c.Description),
-		misc.SqlNullableString(c.Args),
-		misc.SqlNullableString(c.Identity),
-		misc.SqlNullableString(c.Command),
+		sqlNullableInt64(c.Id),
+		sqlNullableString(c.Nickname),
+		sqlNullableString(c.Host),
+		sqlNullableString(c.User),
+		sqlNullableString(c.Description),
+		sqlNullableString(c.Args),
+		sqlNullableString(c.Identity),
+		sqlNullableString(c.Command),
 	)
 
 	return err

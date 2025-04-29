@@ -61,10 +61,10 @@ func marshallConnection(row *sql.Row) (Connection, error) {
 	return c, err
 }
 
-func sqlNullableString(s string) sql.NullString {
-	if len(s) == 0 {
-		return sql.NullString{}
-	}
+func sqlNullableInt64(i int64) sql.NullInt64 {
+	return sql.NullInt64{Int64: i, Valid: true}
+}
 
+func sqlNullableString(s string) sql.NullString {
 	return sql.NullString{String: s, Valid: true}
 }

@@ -3,8 +3,6 @@ package cdb
 import (
 	"database/sql"
 	"strconv"
-
-	"github.com/cannable/sshcm/pkg/misc"
 )
 
 type ConnectionDB struct {
@@ -41,13 +39,13 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 			$6,
 			$7
 		)`,
-		misc.SqlNullableString(c.Nickname),
-		misc.SqlNullableString(c.Host),
-		misc.SqlNullableString(c.User),
-		misc.SqlNullableString(c.Description),
-		misc.SqlNullableString(c.Args),
-		misc.SqlNullableString(c.Identity),
-		misc.SqlNullableString(c.Command),
+		sqlNullableString(c.Nickname),
+		sqlNullableString(c.Host),
+		sqlNullableString(c.User),
+		sqlNullableString(c.Description),
+		sqlNullableString(c.Args),
+		sqlNullableString(c.Identity),
+		sqlNullableString(c.Command),
 	)
 
 	if err != nil {
