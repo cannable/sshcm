@@ -209,3 +209,38 @@ func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connec
 
 	return c, err
 }
+
+func (conndb *ConnectionDB) Search(search string) ([]*Connection, error) {
+	var cns []*Connection
+	rows, err := conndb.connection.Query(`
+		SELECT id
+		FROM connections
+		WHERE (nickname LIKE $1)
+		OR (host LIKE $1)
+		OR (user LIKE $1)
+		OR (description LIKE $1)
+		ORDER BY id;
+	`, "%"+search+"%")
+
+	if err != nil {
+		return cns, err
+	}
+
+	for rows.Next() {
+		var id int64
+
+		if err := rows.Scan(&id); err != nil {
+			return cns, err
+		}
+
+		c, err := conndb.Get(id)
+
+		if err != nil {
+			return cns, err
+		}
+
+		cns = append(cns, &c)
+	}
+
+	return cns, err
+}

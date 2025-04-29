@@ -109,6 +109,51 @@ func getDbPath() string {
 	return filepath.Join(homePath, "/.config/"+dbFileName)
 }
 
+func listConnections(cns []*cdb.Connection, listAll bool) {
+	// Assemble output template
+	t := `{{ printf "%-4s" "ID" }} `
+	t = t + `{{ printf "%-15s" "Nickname" }} `
+	t = t + `{{ printf "%-10s" "User" }} `
+	t = t + `{{ printf "%-15s" "Host" }} `
+	t = t + `{{ printf "%-20s" "Description" }} `
+
+	if listAll {
+		t = t + `{{ printf "%-10s" "Args" }} `
+		t = t + `{{ printf "%-10s" "Identity" }} `
+		t = t + `{{ printf "%-10s" "Command" }} `
+		t = t + `{{ printf "%-10s"  "Binary" }} `
+	}
+
+	t = t + "\n{{ range . }}"
+	t = t + `{{ .Id.StringTrimmed 4 }} `
+	t = t + `{{ .Nickname.StringTrimmed 15 }} `
+	t = t + `{{ .User.StringTrimmed 10 }} `
+	t = t + `{{ .Host.StringTrimmed 15 }} `
+	t = t + `{{ .Description.StringTrimmed 20 }} `
+
+	if listAll {
+		t = t + `{{ .Args.StringTrimmed 10 }} `
+		t = t + `{{ .Identity.StringTrimmed 10 }} `
+		t = t + `{{ .Command.StringTrimmed 10 }} `
+		t = t + `{{ .Binary.StringTrimmed 10 }} `
+	}
+
+	t = t + "\n{{ end }}"
+
+	tmpl, err := template.New("connection").Parse(t)
+
+	if err != nil {
+		panic(err)
+	}
+
+	// Run templates
+	err = tmpl.Execute(os.Stdout, cns)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 func openDb() cdb.ConnectionDB {
 	path := getDbPath()
 
