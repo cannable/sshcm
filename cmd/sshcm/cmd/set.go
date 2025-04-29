@@ -73,37 +73,37 @@ sshcm s asdf --nickname fdsa`,
 				}
 			}
 
-			c.Nickname = &cdb.NicknameProperty{Value: cmdCnNickname}
+			c.Nickname = cmdCnNickname
 		}
 
 		// Update hostname, if it was passed
 		if slices.Contains(cmdCnSetFlags, "host") {
-			c.Host.Value = cmdCnHost
+			c.Host = cmdCnHost
 		}
 
 		// Update user, if it was passed
 		if slices.Contains(cmdCnSetFlags, "user") {
-			c.User.Value = cmdCnUser
+			c.User = cmdCnUser
 		}
 
 		// Update description, if it was passed
 		if slices.Contains(cmdCnSetFlags, "description") {
-			c.Description.Value = cmdCnDescription
+			c.Description = cmdCnDescription
 		}
 
 		// Update args, if it was passed
 		if slices.Contains(cmdCnSetFlags, "args") {
-			c.Args.Value = cmdCnArgs
+			c.Args = cmdCnArgs
 		}
 
 		// Update identity, if it was passed
 		if slices.Contains(cmdCnSetFlags, "identity") {
-			c.Identity.Value = cmdCnIdentity
+			c.Identity = cmdCnIdentity
 		}
 
 		// Update command, if it was passed
 		if slices.Contains(cmdCnSetFlags, "command") {
-			c.Command.Value = cmdCnCommand
+			c.Command = cmdCnCommand
 		}
 
 		// Update the connection

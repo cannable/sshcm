@@ -27,35 +27,35 @@ func marshallConnection(row *sql.Row) (Connection, error) {
 	}
 
 	// Set connection ID, nickname, and host
-	c.Id.Value = id.Int64
-	c.Nickname.Value = nickname.String
-	c.Host.Value = host.String
+	c.Id = id.Int64
+	c.Nickname = nickname.String
+	c.Host = host.String
 
 	// The remaining bits from the DB are optional
 
 	// If the DB has a user name for this connection, use it
 	if user.Valid {
-		c.User.Value = user.String
+		c.User = user.String
 	}
 
 	// Use the description from the DB if it exists
 	if description.Valid {
-		c.Description.Value = description.String
+		c.Description = description.String
 	}
 
 	// Use the args from the DB if it exists
 	if args.Valid {
-		c.Args.Value = args.String
+		c.Args = args.String
 	}
 
 	// Use the identity from the DB if it exists
 	if identity.Valid {
-		c.Identity.Value = identity.String
+		c.Identity = identity.String
 	}
 
 	// Use the command from the DB if it exists
 	if command.Valid {
-		c.Command.Value = command.String
+		c.Command = command.String
 	}
 
 	return c, err

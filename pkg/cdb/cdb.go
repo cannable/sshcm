@@ -91,18 +91,5 @@ func Open(path string) (ConnectionDB, error) {
 // Using this function is preferred vs. creating a new struct via literal, as
 // the format of the struct may change in the future.
 func NewConnection() Connection {
-	var c Connection
-
-	c.Id = &IdProperty{Name: "id"}
-	c.Nickname = &NicknameProperty{Name: "nickname"}
-
-	c.Host = &ConnectionProperty{Name: "host"}
-	c.User = &ConnectionProperty{Name: "user"}
-	c.Description = &ConnectionProperty{Name: "description"}
-	c.Args = &ConnectionProperty{Name: "args"}
-	c.Identity = &ConnectionProperty{Name: "identity"}
-	c.Command = &ConnectionProperty{Name: "command"}
-	c.Binary = &ConnectionProperty{Name: "binary"}
-
-	return c
+	return Connection{}
 }

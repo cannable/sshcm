@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/cannable/sshcm/pkg/misc"
 )
 
 // A Connection is an SSH connection, as stored in a ConnectionDB.
@@ -22,16 +24,27 @@ import (
 // database bypassing validations that avoid throwing SQL errors (like
 // checking for Nickname uniqueness).
 type Connection struct {
-	db          *ConnectionDB       // pointer to parent ConnectionDB
-	Id          *IdProperty         // unique connection id
-	Nickname    *NicknameProperty   // unique connection nickname
-	Host        *ConnectionProperty // connection-specific host name/IP address
-	User        *ConnectionProperty // connection-specific user name
-	Description *ConnectionProperty // connection-specific description (hopefully friendly)
-	Args        *ConnectionProperty // connection-specific arguments to pass to SSH Command
-	Identity    *ConnectionProperty // connection-specific OpenSSH-style identity string (ex. path or name)
-	Command     *ConnectionProperty // connection-specific Command to run (ex. sftp)
-	Binary      *ConnectionProperty // to be deleted
+	db          *ConnectionDB // pointer to parent ConnectionDB
+	Id          int64         // unique connection id
+	Nickname    string        // unique connection nickname
+	Host        string        // connection-specific host name/IP address
+	User        string        // connection-specific user name
+	Description string        // connection-specific description (hopefully friendly)
+	Args        string        // connection-specific arguments to pass to SSH Command
+	Identity    string        // connection-specific OpenSSH-style identity string (ex. path or name)
+	Command     string        // connection-specific Command to run (ex. sftp)
+	Binary      string        // to be deleted
+}
+
+var ListViewColumnWidths = map[string]int{
+	"id":          4,
+	"nickname":    15,
+	"user":        10,
+	"host":        15,
+	"description": 20,
+	"args":        10,
+	"identity":    10,
+	"command":     10,
 }
 
 // Delete removes a connection from the underlying SQL database.
@@ -46,12 +59,12 @@ func (c Connection) Delete() error {
 	}
 
 	// Do we have an id?
-	if c.Id.IsEmpty() {
+	if c.Id == 0 {
 		return ErrConnNoId
 	}
 
 	// Does the ID exist?
-	if !c.db.Exists(c.Id.Value) {
+	if !c.db.Exists(c.Id) {
 		return ErrIdNotExist
 	}
 
@@ -60,21 +73,52 @@ func (c Connection) Delete() error {
         DELETE FROM connections
 		WHERE id = $1
 		`,
-		c.Id.SqlNullableValue())
+		misc.SqlNullableInt64(c.Id))
+
+	return err
+}
+
+func (c Connection) WriteRecordLong(w io.Writer) error {
+	offset := 12
+	s := fmt.Sprintf("%-*s: %d\n", offset, "ID", c.Id)
+
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Nickname", c.Nickname)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "User", c.User)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Host", c.Host)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Description", c.Description)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Args", c.Args)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Identity", c.Identity)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Command", c.Command)
+
+	_, err := w.Write([]byte(s))
+
+	return err
+}
+
+func (c Connection) WriteRecordShort(w io.Writer) error {
+	offset := 12
+	s := fmt.Sprintf("%-*s: %d\n", offset, "ID", c.Id)
+
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Nickname", c.Nickname)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "User", c.User)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Host", c.Host)
+	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Description", c.Description)
+
+	_, err := w.Write([]byte(s))
 
 	return err
 }
 
 func (c Connection) WriteCSV(w *csv.Writer) error {
 	return w.Write([]string{
-		c.Id.String(),
-		c.Nickname.String(),
-		c.User.String(),
-		c.Host.String(),
-		c.Description.String(),
-		c.Args.String(),
-		c.Identity.String(),
-		c.Command.String(),
+		string(c.Id),
+		c.Nickname,
+		c.User,
+		c.Host,
+		c.Description,
+		c.Args,
+		c.Identity,
+		c.Command,
 	})
 }
 
@@ -90,10 +134,37 @@ func (c Connection) WriteJSON(w io.Writer) error {
 	return err
 }
 
+func (c Connection) WriteLineLong(w io.Writer) error {
+	_, err := fmt.Fprintf(w, "%-*d %s %s %s %s %s %s %s\n",
+		ListViewColumnWidths["id"], c.Id,
+		misc.StringTrimmer(c.Nickname, ListViewColumnWidths["nickname"]),
+		misc.StringTrimmer(c.User, ListViewColumnWidths["user"]),
+		misc.StringTrimmer(c.Host, ListViewColumnWidths["host"]),
+		misc.StringTrimmer(c.Description, ListViewColumnWidths["description"]),
+		misc.StringTrimmer(c.Args, ListViewColumnWidths["args"]),
+		misc.StringTrimmer(c.Identity, ListViewColumnWidths["identity"]),
+		misc.StringTrimmer(c.Command, ListViewColumnWidths["command"]),
+	)
+
+	return err
+}
+
+func (c Connection) WriteLineShort(w io.Writer) error {
+	_, err := fmt.Fprintf(w, "%-*d %s %s %s %s\n",
+		ListViewColumnWidths["id"], c.Id,
+		misc.StringTrimmer(c.Nickname, ListViewColumnWidths["nickname"]),
+		misc.StringTrimmer(c.User, ListViewColumnWidths["user"]),
+		misc.StringTrimmer(c.Host, ListViewColumnWidths["host"]),
+		misc.StringTrimmer(c.Description, ListViewColumnWidths["description"]),
+	)
+
+	return err
+}
+
 // String returns a string containing the connection nickname and ID, in the
 // format: "nickname (id)".
 func (c Connection) String() string {
-	return fmt.Sprintf("%s (%d)", c.Nickname.Value, c.Id.Value)
+	return fmt.Sprintf("%s (%d)", c.Nickname, c.Id)
 }
 
 // Update updates an existing connection in the SQL database.
@@ -108,17 +179,17 @@ func (c Connection) Update() error {
 	}
 
 	// Do we have an id?
-	if c.Id.IsEmpty() {
+	if c.Id == 0 {
 		return ErrConnNoId
 	}
 
 	// Does the ID exist?
-	if !c.db.Exists(c.Id.Value) {
+	if !c.db.Exists(c.Id) {
 		return ErrIdNotExist
 	}
 
 	// Do we have a nickname?
-	if c.Nickname.IsEmpty() {
+	if len(c.Nickname) < 1 {
 		return ErrConnNoNickname
 	}
 
@@ -134,15 +205,33 @@ func (c Connection) Update() error {
 			command = $8
 		WHERE id = $1
 		`,
-		c.Id.SqlNullableValue(),
-		c.Nickname.SqlNullableValue(),
-		c.Host.SqlNullableValue(),
-		c.User.SqlNullableValue(),
-		c.Description.SqlNullableValue(),
-		c.Args.SqlNullableValue(),
-		c.Identity.SqlNullableValue(),
-		c.Command.SqlNullableValue(),
+		misc.SqlNullableInt64(c.Id),
+		misc.SqlNullableString(c.Nickname),
+		misc.SqlNullableString(c.Host),
+		misc.SqlNullableString(c.User),
+		misc.SqlNullableString(c.Description),
+		misc.SqlNullableString(c.Args),
+		misc.SqlNullableString(c.Identity),
+		misc.SqlNullableString(c.Command),
 	)
 
 	return err
+}
+
+func (c Connection) Validate() error {
+	// Validate Id
+
+	// Validate Nickname
+	if err := ValidateNickname(c.Nickname); err != nil {
+		return err
+	}
+
+	// Validate Host
+	// Validate User
+	// Validate Description
+	// Validate Args
+	// Validate Identity
+	// Validate Command
+
+	return nil
 }

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"text/template"
 
 	"github.com/cannable/sshcm/pkg/cdb"
+	"github.com/cannable/sshcm/pkg/misc"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -108,48 +108,57 @@ func getDbPath() string {
 }
 
 func listConnections(cns []*cdb.Connection, listAll bool) {
-	// Assemble output template
-	t := `{{ printf "%-4s" "ID" }} `
-	t = t + `{{ printf "%-15s" "Nickname" }} `
-	t = t + `{{ printf "%-10s" "User" }} `
-	t = t + `{{ printf "%-15s" "Host" }} `
-	t = t + `{{ printf "%-20s" "Description" }} `
 
+	// Print header
 	if listAll {
-		t = t + `{{ printf "%-10s" "Args" }} `
-		t = t + `{{ printf "%-10s" "Identity" }} `
-		t = t + `{{ printf "%-10s" "Command" }} `
-		t = t + `{{ printf "%-10s"  "Binary" }} `
+		// Long header
+		_, err := fmt.Fprintf(os.Stdout, "%s %s %s %s %s %s %s %s\n",
+			misc.StringTrimmer("ID", cdb.ListViewColumnWidths["id"]),
+			misc.StringTrimmer("Nickname", cdb.ListViewColumnWidths["nickname"]),
+			misc.StringTrimmer("User", cdb.ListViewColumnWidths["user"]),
+			misc.StringTrimmer("Host", cdb.ListViewColumnWidths["host"]),
+			misc.StringTrimmer("Description", cdb.ListViewColumnWidths["description"]),
+			misc.StringTrimmer("Args", cdb.ListViewColumnWidths["args"]),
+			misc.StringTrimmer("Identity", cdb.ListViewColumnWidths["identity"]),
+			misc.StringTrimmer("Command", cdb.ListViewColumnWidths["command"]),
+		)
+
+		if err != nil {
+			bail(err)
+		}
+	} else {
+		// Short header
+		_, err := fmt.Fprintf(os.Stdout, "%s %s %s %s %s\n",
+			misc.StringTrimmer("ID", cdb.ListViewColumnWidths["id"]),
+			misc.StringTrimmer("Nickname", cdb.ListViewColumnWidths["nickname"]),
+			misc.StringTrimmer("User", cdb.ListViewColumnWidths["user"]),
+			misc.StringTrimmer("Host", cdb.ListViewColumnWidths["host"]),
+			misc.StringTrimmer("Description", cdb.ListViewColumnWidths["description"]),
+		)
+
+		if err != nil {
+			bail(err)
+		}
 	}
 
-	t = t + "\n{{ range . }}"
-	t = t + `{{ .Id.StringTrimmed 4 }} `
-	t = t + `{{ .Nickname.StringTrimmed 15 }} `
-	t = t + `{{ .User.StringTrimmed 10 }} `
-	t = t + `{{ .Host.StringTrimmed 15 }} `
-	t = t + `{{ .Description.StringTrimmed 20 }} `
+	for _, c := range cns {
+		if listAll {
+			err := c.WriteLineLong(os.Stderr)
 
-	if listAll {
-		t = t + `{{ .Args.StringTrimmed 10 }} `
-		t = t + `{{ .Identity.StringTrimmed 10 }} `
-		t = t + `{{ .Command.StringTrimmed 10 }} `
-		t = t + `{{ .Binary.StringTrimmed 10 }} `
+			if err != nil {
+				bail(err)
+			}
+		} else {
+			err := c.WriteLineShort(os.Stderr)
+
+			if err != nil {
+				bail(err)
+			}
+
+		}
+
 	}
 
-	t = t + "\n{{ end }}"
-
-	tmpl, err := template.New("connection").Parse(t)
-
-	if err != nil {
-		panic(err)
-	}
-
-	// Run templates
-	err = tmpl.Execute(os.Stdout, cns)
-
-	if err != nil {
-		panic(err)
-	}
 }
 
 func openDb() cdb.ConnectionDB {
@@ -174,34 +183,18 @@ func openDb() cdb.ConnectionDB {
 }
 
 func printConnection(c *cdb.Connection, printHeader bool) {
-	t := `{{ printf "%-12s" "ID" }}: {{ .Id.Value }}
-{{ printf "%-12s" "Nickname" }}: {{ .Nickname.Value }}
-{{ printf "%-12s" "User" }}: {{ .User.Value }}
-{{ printf "%-12s" "Host" }}: {{ .Host.Value }}
-{{ printf "%-12s" "Description" }}: {{ .Description.Value }}
-{{ printf "%-12s" "Args" }}: {{ .Args.Value }}
-{{ printf "%-12s" "Identity" }}: {{ .Identity.Value }}
-{{ printf "%-12s" "Command" }}: {{ .Command.Value }}
-{{ printf "%-12s"  "Binary" }}: {{ .Binary.Value }}
-`
-	tmpl, err := template.New("connection_record").Parse(t)
-
-	if err != nil {
-		panic(err)
-	}
-
 	if printHeader {
 		fmt.Println("******************************")
 		fmt.Println(c.Nickname)
 		fmt.Println("******************************")
 	}
 
-	// Run templates
-	err = tmpl.Execute(os.Stdout, c)
+	err := c.WriteRecordLong(os.Stdout)
 
 	if err != nil {
 		panic(err)
 	}
+
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

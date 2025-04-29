@@ -42,13 +42,13 @@ sshcm add --nickname something --user me --host 127.0.0.1`,
 
 		c := cdb.NewConnection()
 
-		c.Nickname.Value = cmdCnNickname
-		c.Host.Value = cmdCnHost
-		c.User.Value = cmdCnUser
-		c.Description.Value = cmdCnDescription
-		c.Args.Value = cmdCnArgs
-		c.Identity.Value = cmdCnIdentity
-		c.Command.Value = cmdCnCommand
+		c.Nickname = cmdCnNickname
+		c.Host = cmdCnHost
+		c.User = cmdCnUser
+		c.Description = cmdCnDescription
+		c.Args = cmdCnArgs
+		c.Identity = cmdCnIdentity
+		c.Command = cmdCnCommand
 
 		if debugMode {
 			fmt.Println("Adding connection:")

@@ -52,19 +52,19 @@ sshcm c something --user=someone
 
 		// Override connection settings with user-supplied arguments
 		if slices.Contains(cmdCnSetFlags, "user") {
-			c.User.Value = cmdCnUser
+			c.User = cmdCnUser
 		}
 
 		if slices.Contains(cmdCnSetFlags, "args") {
-			c.Args.Value = cmdCnArgs
+			c.Args = cmdCnArgs
 		}
 
 		if slices.Contains(cmdCnSetFlags, "identity") {
-			c.Identity.Value = cmdCnIdentity
+			c.Identity = cmdCnIdentity
 		}
 
 		if slices.Contains(cmdCnSetFlags, "command") {
-			c.Command.Value = cmdCnCommand
+			c.Command = cmdCnCommand
 		}
 
 		if debugMode {
@@ -72,7 +72,7 @@ sshcm c something --user=someone
 		}
 
 		// Get effective SSH command
-		sshCmd, err := db.GetEffectiveValue(c.Command.Value, "command")
+		sshCmd, err := db.GetEffectiveValue(c.Command, "command")
 
 		if err != nil {
 			bail(err)
@@ -92,7 +92,7 @@ sshcm c something --user=someone
 
 		// Append arguments
 		var execArgs = []string{execBin}
-		sshArgs, err := db.GetEffectiveValue(c.Args.Value, "args")
+		sshArgs, err := db.GetEffectiveValue(c.Args, "args")
 
 		if err != nil {
 			panic(err)
@@ -105,7 +105,7 @@ sshcm c something --user=someone
 		}
 
 		// Append identity
-		identity, err := db.GetEffectiveValue(c.Identity.Value, "identity")
+		identity, err := db.GetEffectiveValue(c.Identity, "identity")
 
 		if err != nil {
 			panic(err)
@@ -116,8 +116,8 @@ sshcm c something --user=someone
 		}
 
 		// Host & user
-		host := c.Host.Value
-		user, err := db.GetEffectiveValue(c.User.Value, "user")
+		host := c.Host
+		user, err := db.GetEffectiveValue(c.User, "user")
 
 		if err != nil {
 			panic(err)

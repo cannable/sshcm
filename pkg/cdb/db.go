@@ -3,6 +3,8 @@ package cdb
 import (
 	"database/sql"
 	"strconv"
+
+	"github.com/cannable/sshcm/pkg/misc"
 )
 
 type ConnectionDB struct {
@@ -11,12 +13,12 @@ type ConnectionDB struct {
 
 func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 	// Do we have a nickname?
-	if c.Nickname.IsEmpty() {
+	if len(c.Nickname) < 1 {
 		return -1, ErrConnNoNickname
 	}
 
 	// See if the nickname already exists
-	if conndb.ExistsByProperty("nickname", c.Nickname.Value) {
+	if conndb.ExistsByProperty("nickname", c.Nickname) {
 		return -1, ErrDuplicateNickname
 	}
 
@@ -39,13 +41,13 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 			$6,
 			$7
 		)`,
-		c.Nickname.SqlNullableValue(),
-		c.Host.SqlNullableValue(),
-		c.User.SqlNullableValue(),
-		c.Description.SqlNullableValue(),
-		c.Args.SqlNullableValue(),
-		c.Identity.SqlNullableValue(),
-		c.Command.SqlNullableValue(),
+		misc.SqlNullableString(c.Nickname),
+		misc.SqlNullableString(c.Host),
+		misc.SqlNullableString(c.User),
+		misc.SqlNullableString(c.Description),
+		misc.SqlNullableString(c.Args),
+		misc.SqlNullableString(c.Identity),
+		misc.SqlNullableString(c.Command),
 	)
 
 	if err != nil {

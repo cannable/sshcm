@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/cannable/sshcm/pkg/cdb"
+	"github.com/cannable/sshcm/pkg/misc"
 )
 
 func trimmer(s string, len int) string {
@@ -24,41 +25,41 @@ func main() {
 
 	// Test A
 	tst := cdb.NewConnection()
-	tst.Nickname.Value = "testA"
-	tst.Host.Value = "some.host.name"
+	tst.Nickname = "testA"
+	tst.Host = "some.host.name"
 
 	cnsToAdd = append(cnsToAdd, tst)
 
 	// Test B
 	tst = cdb.NewConnection()
-	tst.Nickname.Value = "test_b"
-	tst.Host.Value = "127.0.0.1"
-	tst.User.Value = "tOor"
+	tst.Nickname = "test_b"
+	tst.Host = "127.0.0.1"
+	tst.User = "tOor"
 
 	cnsToAdd = append(cnsToAdd, tst)
 
 	// Test C
 	tst = cdb.NewConnection()
-	tst.Nickname.Value = "tes^ C"
-	tst.Host.Value = "blarg"
-	tst.Description.Value = "Something profound here"
-	tst.User.Value = "nobody"
+	tst.Nickname = "tes^ C"
+	tst.Host = "blarg"
+	tst.Description = "Something profound here"
+	tst.User = "nobody"
 
 	cnsToAdd = append(cnsToAdd, tst)
 
 	// Test D
 	tst = cdb.NewConnection()
-	tst.Nickname.Value = "TESTD"
-	tst.Host.Value = "ggggg"
-	tst.Identity.Value = "~/.ssh/id_rsa_demo"
+	tst.Nickname = "TESTD"
+	tst.Host = "ggggg"
+	tst.Identity = "~/.ssh/id_rsa_demo"
 
 	cnsToAdd = append(cnsToAdd, tst)
 
 	// Test E
 	tst = cdb.NewConnection()
-	tst.Nickname.Value = "teste"
-	tst.Host.Value = "soisoisoi"
-	tst.User.Value = "sftp"
+	tst.Nickname = "teste"
+	tst.Host = "soisoisoi"
+	tst.User = "sftp"
 
 	cnsToAdd = append(cnsToAdd, tst)
 
@@ -127,8 +128,8 @@ func main() {
 		log.Fatal("update: failed to get connection ", err)
 	}
 
-	cn.Description.Value = "Updated"
-	cn.Host.Value = "asdf"
+	cn.Description = "Updated"
+	cn.Host = "asdf"
 	err = cn.Update()
 
 	if err != nil {
@@ -197,28 +198,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Print(trimmer("Id", 4) + " ")
-	fmt.Print(trimmer("Nickname", 15) + " ")
-	fmt.Print(trimmer("Host", 20) + " ")
-	fmt.Print(trimmer("User", 10) + " ")
-	fmt.Print(trimmer("Description", 20) + " ")
-	fmt.Print(trimmer("Args", 10) + " ")
-	fmt.Print(trimmer("Identity", 10) + " ")
-	fmt.Print(trimmer("Command", 10) + " ")
-	fmt.Print(trimmer("Binary", 10) + " ")
-	fmt.Print("\n")
+	_, err = fmt.Fprintf(os.Stdout, "%s %s %s %s %s %s %s %s\n",
+		misc.StringTrimmer("ID", cdb.ListViewColumnWidths["id"]),
+		misc.StringTrimmer("Nickname", cdb.ListViewColumnWidths["nickname"]),
+		misc.StringTrimmer("User", cdb.ListViewColumnWidths["user"]),
+		misc.StringTrimmer("Host", cdb.ListViewColumnWidths["host"]),
+		misc.StringTrimmer("Description", cdb.ListViewColumnWidths["description"]),
+		misc.StringTrimmer("Args", cdb.ListViewColumnWidths["args"]),
+		misc.StringTrimmer("Identity", cdb.ListViewColumnWidths["identity"]),
+		misc.StringTrimmer("Command", cdb.ListViewColumnWidths["command"]),
+	)
+
+	if err != nil {
+		log.Fatal("Error:", err)
+		os.Exit(1)
+	}
 
 	for i := range cns {
-		fmt.Print(cns[i].Id.StringTrimmed(4) + " ")
-		fmt.Print(cns[i].Nickname.StringTrimmed(15) + " ")
-		fmt.Print(cns[i].Host.StringTrimmed(20) + " ")
-		fmt.Print(cns[i].User.StringTrimmed(10) + " ")
-		fmt.Print(cns[i].Description.StringTrimmed(20) + " ")
-		fmt.Print(cns[i].Args.StringTrimmed(10) + " ")
-		fmt.Print(cns[i].Identity.StringTrimmed(10) + " ")
-		fmt.Print(cns[i].Command.StringTrimmed(10) + " ")
-		fmt.Print(cns[i].Binary.StringTrimmed(10) + " ")
-		fmt.Print("\n")
+		cns[i].WriteLineLong(os.Stdout)
 	}
 
 	db.Close()
