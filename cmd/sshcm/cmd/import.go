@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"encoding/csv"
+	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/cannable/sshcm/pkg/cdb"
@@ -99,26 +101,120 @@ func importConnections(f *os.File) error {
 			if i == 0 {
 				// Header row - determine column order
 				cols, err = getCSVColumnMappings(row)
-
 			}
 
 			c := cdb.NewConnection()
 
-			c.Host = row[cols["host"]]
+			importNickname := row[cols["nickname"]]
 
+			// See if the nickname exists. If it does, we'll start with the existing
+			// connection and update it
+			update := false
+			if db.ExistsByProperty("nickname", importNickname) {
+				update = true
+				c, err = db.GetByProperty("nickname", importNickname)
+
+				// If we found the connection by nickname but couldn't actually retrieve
+				// it, something is really wrong
+				if err != nil {
+					return err
+				}
+
+				fmt.Printf("Updating existing connection '%s' (%d)...\n", importNickname, c.Id)
+			} else {
+				fmt.Printf("Importing new connection '%s'...\n", importNickname)
+			}
+
+			// Populate or update properties in new Connection
+			c.Nickname = row[cols["nickname"]]
+			c.Host = row[cols["host"]]
+			c.User = row[cols["user"]]
+			c.Description = row[cols["description"]]
+			c.Args = row[cols["args"]]
+			c.Identity = row[cols["identity"]]
+			c.Command = row[cols["command"]]
+
+			if update {
+				err = c.Update()
+
+				if err != nil {
+					return err
+				}
+			} else {
+				id, err := db.Add(&c)
+
+				if err != nil {
+					return err
+				}
+
+				fmt.Printf("Added new connection '%s' (%d).\n", importNickname, id)
+			}
 		}
 	case "json":
-		/*
-			out, err := json.Marshal(cns)
+		d := json.NewDecoder(f)
 
-			f.Write(out)
+		// Read the opening bracket (because we should have an array)
+		_, err := d.Token()
+
+		if err != nil {
+			return err
+		}
+
+		// Read the stream of data, decoding Connection JSON payloads as we go
+		for d.More() {
+			c := cdb.NewConnection()
+
+			err := d.Decode(&c)
 
 			if err != nil {
 				return err
 			}
-		*/
+
+			// See if the nickname exists. If it does, we'll do an update.
+			if db.ExistsByProperty("nickname", c.Nickname) {
+				newCn := c
+
+				c, err = db.GetByProperty("nickname", c.Nickname)
+
+				// If we found the connection by nickname but couldn't actually retrieve
+				// it, something is really wrong
+				if err != nil {
+					return err
+				}
+
+				// Update existing connection properties with those from the decoded
+				// json object.
+				c.Nickname = newCn.Nickname
+				c.Host = newCn.Host
+				c.User = newCn.User
+				c.Description = newCn.Description
+				c.Args = newCn.Args
+				c.Identity = newCn.Identity
+				c.Command = newCn.Command
+
+				fmt.Printf("Updating existing connection '%s' (%d)...\n", c.Nickname, c.Id)
+
+				err = c.Update()
+
+				if err != nil {
+					return err
+				}
+			} else {
+				fmt.Printf("Importing new connection '%s'...\n", c.Nickname)
+
+				id, err := db.Add(&c)
+
+				if err != nil {
+					return err
+				}
+
+				fmt.Printf("Added new connection '%s' (%d).\n", c.Nickname, id)
+			}
+		}
 	}
+
 	db.Close()
+
 	return nil
 }
 
