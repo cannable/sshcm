@@ -60,6 +60,17 @@ The default format is CSV. To use json, pass --format json.`,
 	}
 )
 
+// getCSVColumnMappings returns a map of CSV column names vs. offset, determined
+// from the passed row slice of strings. This allows importConnections() to
+// re-assemble connection properties from CSV columns in any positional order,
+// as long as they are valid properties.
+//
+// Returns map[string]int, where:
+//
+//		string == column heading (from passed row)
+//	  int == positional index of column within row string slice/CSV file
+//
+// If a heading is encountered that is not valid, an error will be returned.
 func getCSVColumnMappings(row []string) (map[string]int, error) {
 	cols := make(map[string]int)
 
@@ -76,6 +87,20 @@ func getCSVColumnMappings(row []string) (map[string]int, error) {
 	return cols, nil
 }
 
+// importConnections imports connections from the passed Reader.
+//
+// nil will be returned if the entire import operation succeeds.
+//
+// This func supports csv and json format. The format used is determed by the
+// global variable inputFmt. As this is managed by cobra/pflag, the value is
+// not validated.
+//
+// Various errors may be returned at any point during the import and are
+// likely caused by an I/O failure.
+//
+// An error during import will likely stop the process between connections
+// (the previous one that succeeded and the current one that failed). As such,
+// it's worth being aware that a partial import is a likely failure mode.
 func importConnections(f *os.File) error {
 	db = openDb()
 

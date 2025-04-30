@@ -23,6 +23,11 @@ var ValidProperties = [7]string{
 	"command",
 }
 
+// IsValidDefault checks the passed default property name against a list of
+// valid default properties. This is similar to IsValidProperty, except there
+// are fewer defaults.
+//
+// Returns true if the name is valid, false otherwise.
 func IsValidDefault(name string) bool {
 	for _, v := range ValidDefaults {
 		if strings.Compare(name, v) == 0 {
@@ -32,6 +37,10 @@ func IsValidDefault(name string) bool {
 	return false
 }
 
+// IsValidProperty checks the passed connection property name against a list of
+// valid properties.
+//
+// Returns true if the name is valid, false otherwise.
 func IsValidProperty(property string) bool {
 	for _, v := range ValidProperties {
 		if strings.Compare(property, v) == 0 {
@@ -41,6 +50,10 @@ func IsValidProperty(property string) bool {
 	return false
 }
 
+// ValidateNickname runs checks against the passed nickname string.
+//
+// If the tests pass and the nickname is valid, nil is returned.
+// If any test fails, a relevant error is returned.
 func ValidateNickname(nickname string) error {
 	firstChar := []rune(nickname)[0]
 
@@ -51,6 +64,16 @@ func ValidateNickname(nickname string) error {
 	return nil
 }
 
+// ValidateId runs checks against the passed id as a string.
+//
+// If the tests pass and the id is valid, nil is returned.
+// If any test fails, a relevant error is returned.
+//
+// This is implemented as a string, as it is intended to be used in
+// circumstances where a string might contain an id, or what is expected to be
+// an id. The primary situation where this occurs is validating command line
+// arguments - because a user may choose to make a connection by id or
+// nickname, this func is the frontline validation of that user input.
 func ValidateId(id string) error {
 	_, err := strconv.Atoi(id)
 
@@ -61,6 +84,9 @@ func ValidateId(id string) error {
 	return nil
 }
 
+// IsValidIdOrNickname returns true if the passed string is a valid id or
+// nickname. This is a smoke test meant to be used to simplify conditionals
+// around validating command line arguments.
 func IsValidIdOrNickname(s string) bool {
 	// Determine if the passed string is a nickname or id
 	if err := ValidateId(s); err == nil {

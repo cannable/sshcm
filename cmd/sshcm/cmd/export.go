@@ -60,6 +60,11 @@ The default format is CSV. To use json, pass --format json.`,
 	}
 )
 
+// exportConnections writes connection properties to the passed Writer, in
+// either CSV or json format.
+//
+// If the export path is a file and it exists, a warning will be printed to
+// stderr that the file will be clobbered, but an error will not be returned.
 func exportConnections(f *os.File) error {
 	db = openDb()
 

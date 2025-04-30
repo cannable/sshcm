@@ -71,15 +71,15 @@ func bail(err error) {
 	panic(err)
 }
 
+// getDbPath returns the path to the connection database.
+//
+// Paths checked in this order:
+//
+//	User-specified (ex. via argument)
+//	~/.config/dbFileName
+//	[current executable path]/dbFileName
 func getDbPath() string {
 	const dbFileName = "ssh-cm.connections"
-
-	/*
-		Paths checked in this order:
-			User-specified (ex. via argument)
-			~/.config/dbFileName
-			[current executable path]/dbFileName
-	*/
 
 	// Immediately return the path the user supplied, if they passed one
 	if strings.Compare(connDbFilePath, "") != 0 {
@@ -107,10 +107,13 @@ func getDbPath() string {
 	return filepath.Join(homePath, "/.config/"+dbFileName)
 }
 
-func listConnections(cns []*cdb.Connection, listAll bool) {
+// listConnections prints the passed connections in list format to stdout.
+//
+// wide controls whether all connection property columns are printed or a subset.
+func listConnections(cns []*cdb.Connection, wide bool) {
 
 	// Print header
-	if listAll {
+	if wide {
 		// Long header
 		_, err := fmt.Fprintf(os.Stdout, "%s %s %s %s %s %s %s %s\n",
 			misc.StringTrimmer("ID", cdb.ListViewColumnWidths["id"]),
@@ -142,7 +145,7 @@ func listConnections(cns []*cdb.Connection, listAll bool) {
 	}
 
 	for _, c := range cns {
-		if listAll {
+		if wide {
 			err := c.WriteLineLong(os.Stderr)
 
 			if err != nil {
@@ -161,6 +164,10 @@ func listConnections(cns []*cdb.Connection, listAll bool) {
 
 }
 
+// openDb provides a simple wrapper around cdb.Open(). It calls getDbPath, then
+// checks whether the path exists or not. If the connection DB file does not
+// exist, it will print a message to stdout informing the user that one will
+// be created. It then calls cdb.Open().
 func openDb() cdb.ConnectionDB {
 	path := getDbPath()
 
@@ -182,6 +189,10 @@ func openDb() cdb.ConnectionDB {
 	return db
 }
 
+// printConnection writes connection properties to stdout in a multi-line
+// record-format.
+//
+// printHeader controls whether a 'fancy' header string is printed.
 func printConnection(c *cdb.Connection, printHeader bool) {
 	if printHeader {
 		fmt.Println("******************************")
@@ -197,7 +208,8 @@ func printConnection(c *cdb.Connection, printHeader bool) {
 
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
+// Execute adds all child commands to the root command and sets flags
+// appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()

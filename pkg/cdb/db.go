@@ -104,7 +104,7 @@ func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
 		ORDER BY id;
 	`, id)
 
-	c, err := marshallConnection(row)
+	c, err := rowToConnection(row)
 
 	// Attach the connection to its parent (so that connection methods work)
 	c.db = conndb
@@ -203,7 +203,7 @@ func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connec
 		FROM connections
 		WHERE `+property+" = $1", value)
 
-	c, err := marshallConnection(row)
+	c, err := rowToConnection(row)
 
 	// Attach the connection to its parent (so that connection methods work)
 	c.db = conndb
