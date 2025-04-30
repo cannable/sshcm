@@ -48,20 +48,3 @@ func (conndb *ConnectionDB) SetDefault(name string, value string) error {
 
 	return err
 }
-
-func (conndb *ConnectionDB) GetEffectiveValue(value string, setting string) (string, error) {
-	// If a value is set, return that
-	if len(value) > 0 {
-		return value, nil
-	}
-
-	// If a value isn't set, go grab the default value
-	def, err := conndb.GetDefault(setting)
-
-	if err != nil {
-		return "", err
-	}
-
-	// Even if the default is empty, return it
-	return def, nil
-}

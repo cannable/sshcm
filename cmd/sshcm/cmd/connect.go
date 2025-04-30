@@ -72,10 +72,13 @@ sshcm c something --user=someone
 		}
 
 		// Get effective SSH command
-		sshCmd, err := db.GetEffectiveValue(c.Command, "command")
+		sshCmd := c.Command
+		if len(sshCmd) < 1 {
+			sshCmd, err = db.GetDefault("command")
 
-		if err != nil {
-			bail(err)
+			if err != nil {
+				bail(err)
+			}
 		}
 
 		// If the program default is empty, use 'ssh'
@@ -92,10 +95,14 @@ sshcm c something --user=someone
 
 		// Append arguments
 		var execArgs = []string{execBin}
-		sshArgs, err := db.GetEffectiveValue(c.Args, "args")
 
-		if err != nil {
-			panic(err)
+		sshArgs := c.Args
+		if len(sshArgs) < 1 {
+			sshArgs, err = db.GetDefault("args")
+
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		if len(sshArgs) > 0 {
@@ -105,22 +112,31 @@ sshcm c something --user=someone
 		}
 
 		// Append identity
-		identity, err := db.GetEffectiveValue(c.Identity, "identity")
+		identity := c.Identity
 
-		if err != nil {
-			panic(err)
+		if len(identity) < 1 {
+			identity, err = db.GetDefault("identity")
+
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		if len(identity) > 0 {
 			execArgs = append(execArgs, "-i", identity)
 		}
 
-		// Host & user
+		// Host
 		host := c.Host
-		user, err := db.GetEffectiveValue(c.User, "user")
 
-		if err != nil {
-			panic(err)
+		// User
+		user := c.User
+
+		if len(user) < 1 {
+			user, err = db.GetDefault("user")
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		if len(user) > 0 {
