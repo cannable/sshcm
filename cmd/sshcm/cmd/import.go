@@ -24,7 +24,6 @@ Import connections.
 Connections will be imported appending to the existing list. Imported
 connections are issued a new ID. Where a nickname already exists, the connection
 will be updated to reflect what is in the imported data.`,
-		Aliases: []string{"x"},
 		Run: func(cmd *cobra.Command, args []string) {
 
 			if len(importPath) > 0 {

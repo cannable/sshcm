@@ -15,10 +15,9 @@ var (
 	exportPath string
 
 	exportCmd = &cobra.Command{
-		Use:     "export",
-		Short:   "Export all connections",
-		Long:    `Export all connections.`,
-		Aliases: []string{"x"},
+		Use:   "export",
+		Short: "Export all connections",
+		Long:  `Export all connections.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(exportPath) > 0 {
 				// Write to file
