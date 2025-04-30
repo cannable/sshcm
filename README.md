@@ -22,7 +22,7 @@ original. Also the documentation could be better. Things on the to-do list:
 # Installation
 
 ```
-go install github.com/cannable/sshcm/cmd/sshcm
+go install github.com/cannable/sshcm/cmd/sshcm@latest
 ```
 
 # Usage
