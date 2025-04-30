@@ -4,8 +4,15 @@ import (
 	"database/sql"
 )
 
+// GetDefault retrieves a program default property from the connection database.
+//
+// If the passed property name is not valid, ErrInvalidDefault will be returned.
 func (conndb *ConnectionDB) GetDefault(name string) (string, error) {
 	var def sql.NullString
+
+	if !IsValidDefault(name) {
+		return "", ErrInvalidDefault
+	}
 
 	// Get connection details from DB
 	err := conndb.connection.QueryRow(`
@@ -21,8 +28,11 @@ func (conndb *ConnectionDB) GetDefault(name string) (string, error) {
 	return def.String, nil
 }
 
-func (conndb *ConnectionDB) SetDefault(setting string, value string) error {
-	if !IsValidDefault(setting) {
+// SetDefault updates a program default property in the connection database.
+//
+// If the passed property name is not valid, ErrInvalidDefault will be returned.
+func (conndb *ConnectionDB) SetDefault(name string, value string) error {
+	if !IsValidDefault(name) {
 		return ErrInvalidDefault
 	}
 
@@ -32,7 +42,7 @@ func (conndb *ConnectionDB) SetDefault(setting string, value string) error {
 			value = $2
 		WHERE setting = $1
 		`,
-		setting,
+		name,
 		sqlNullableString(value),
 	)
 

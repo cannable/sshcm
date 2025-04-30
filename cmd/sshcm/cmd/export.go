@@ -17,7 +17,11 @@ var (
 	exportCmd = &cobra.Command{
 		Use:   "export",
 		Short: "Export all connections",
-		Long:  `Export all connections.`,
+		Long: `Export connections to standard output (default) or a file.
+
+The export process will update existing connections and append new ones.
+
+The default format is CSV. To use json, pass --format json.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(exportPath) > 0 {
 				// Write to file

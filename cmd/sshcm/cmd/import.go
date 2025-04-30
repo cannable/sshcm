@@ -18,12 +18,11 @@ var (
 	importCmd = &cobra.Command{
 		Use:   "import",
 		Short: "Import connections",
-		Long: `
-Import connections.
+		Long: `Import connections from standard input (default) or a file.
 
-Connections will be imported appending to the existing list. Imported
-connections are issued a new ID. Where a nickname already exists, the connection
-will be updated to reflect what is in the imported data.`,
+The import process will update existing connections and append new ones.
+
+The default format is CSV. To use json, pass --format json.`,
 		Run: func(cmd *cobra.Command, args []string) {
 
 			if len(importPath) > 0 {
@@ -134,12 +133,28 @@ func importConnections(f *os.File) error {
 			c.Command = row[cols["command"]]
 
 			if update {
+				// Run smoke test on connection properties
+				err = c.Validate()
+
+				if err != nil {
+					return err
+				}
+
+				// Update connection
 				err = c.Update()
 
 				if err != nil {
 					return err
 				}
 			} else {
+				// Run smoke test on connection properties
+				err = c.Validate()
+
+				if err != nil {
+					return err
+				}
+
+				// Add connection
 				id, err := db.Add(&c)
 
 				if err != nil {
@@ -193,6 +208,15 @@ func importConnections(f *os.File) error {
 
 				fmt.Printf("Updating existing connection '%s' (%d)...\n", c.Nickname, c.Id)
 
+				// Run smoke test on connection properties
+				err = c.Validate()
+
+				if err != nil {
+					return err
+				}
+
+				// Update connection
+
 				err = c.Update()
 
 				if err != nil {
@@ -201,6 +225,14 @@ func importConnections(f *os.File) error {
 			} else {
 				fmt.Printf("Importing new connection '%s'...\n", c.Nickname)
 
+				// Run smoke test on connection properties
+				err = c.Validate()
+
+				if err != nil {
+					return err
+				}
+
+				// Add connection
 				id, err := db.Add(&c)
 
 				if err != nil {

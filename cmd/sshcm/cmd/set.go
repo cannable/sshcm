@@ -106,6 +106,13 @@ sshcm s asdf --nickname fdsa`,
 			c.Command = cmdCnCommand
 		}
 
+		// Run smoke test on connection properties
+		err = c.Validate()
+
+		if err != nil {
+			bail(err)
+		}
+
 		// Update the connection
 		err = c.Update()
 

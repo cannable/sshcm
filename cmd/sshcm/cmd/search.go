@@ -8,9 +8,16 @@ import (
 
 // searchCmd represents the search command
 var searchCmd = &cobra.Command{
-	Use:     "search",
-	Short:   "Search for connections",
-	Long:    `Search for connections.`,
+	Use:   "search",
+	Short: "Search for connections",
+	Long: `Search for connections. Search is case-insensitive.
+
+Search references the following properties:
+
+- nickname
+- host
+- user
+- description`,
 	Aliases: []string{"f"},
 	Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 	Run: func(cmd *cobra.Command, args []string) {

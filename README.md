@@ -13,11 +13,10 @@ to add to the tool.
 
 # Status
 
-It's not done. This version of the tool is still missing some features from the
-original. Also the documentation is a mess. Things on the to-do list:
+It's not done. This version of the tool is still missing one feature from the
+original. Also the documentation could be better. Things on the to-do list:
 
-- Connection searching
-- Import/export (csv and json)
+- Schema upgrades
 - Actual documentation
 
 # Installation
@@ -153,6 +152,34 @@ Global Flags:
   -v, --verbose     Verbose output
 ```
 
+### Search for connections
+
+Search for connections. Search is case-insensitive.
+
+Search references the following properties:
+
+- nickname
+- host
+- user
+- description
+
+```
+Usage:
+  sshcm search [flags]
+
+Aliases:
+  search, f
+
+Flags:
+  -a, --all    List all connection details (wide output).
+  -h, --help   help for search
+
+Global Flags:
+      --db string   Path to connection DB file (ssh-cm.connections).
+  -v, --verbose     Verbose output
+
+```
+
 ### List all connections
 
 List all connections.
@@ -275,6 +302,52 @@ sshcm defaults
 
 Flags:
   -h, --help   help for defaults
+
+Global Flags:
+      --db string   Path to connection DB file (ssh-cm.connections).
+  -v, --verbose     Verbose output
+```
+
+## Import/Export
+
+### Import connections
+
+Import connections from standard input (default) or a file.
+
+The import process will update existing connections and append new ones.
+
+The default format is CSV. To use json, pass `--format json`.
+
+```
+Usage:
+  sshcm import [flags]
+
+Flags:
+      --format string   Export format. Valid formats: csv or json. (default "csv")
+  -h, --help            help for import
+  -f, --path string     Export destination path.
+
+Global Flags:
+      --db string   Path to connection DB file (ssh-cm.connections).
+  -v, --verbose     Verbose output
+```
+
+### Export connections
+
+Export connections to standard output (default) or a file.
+
+The export process will update existing connections and append new ones.
+
+The default format is CSV. To use json, pass `--format json`.
+
+```
+Usage:
+  sshcm export [flags]
+
+Flags:
+      --format string   Export format. Valid formats: csv or json. (default "csv")
+  -h, --help            help for export
+  -f, --path string     Export destination path.
 
 Global Flags:
       --db string   Path to connection DB file (ssh-cm.connections).

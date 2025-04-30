@@ -78,6 +78,9 @@ func (c Connection) Delete() error {
 	return err
 }
 
+// WriteRecordLong writes a record-format, multi-line string to the passed
+// writer interface. This func will write all connection properties.
+// An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteRecordLong(w io.Writer) error {
 	offset := 12
 	s := fmt.Sprintf("%-*s: %d\n", offset, "ID", c.Id)
@@ -95,6 +98,9 @@ func (c Connection) WriteRecordLong(w io.Writer) error {
 	return err
 }
 
+// WriteRecordShort writes a record-format, multi-line string to the passed
+// writer interface. This func will write only some connection properties.
+// An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteRecordShort(w io.Writer) error {
 	offset := 12
 	s := fmt.Sprintf("%-*s: %d\n", offset, "ID", c.Id)
@@ -109,6 +115,8 @@ func (c Connection) WriteRecordShort(w io.Writer) error {
 	return err
 }
 
+// WriteCSV will write the connection in CSV format to the passed writer.
+// An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteCSV(w *csv.Writer) error {
 	return w.Write([]string{
 		fmt.Sprintf("%d", c.Id),
@@ -122,6 +130,8 @@ func (c Connection) WriteCSV(w *csv.Writer) error {
 	})
 }
 
+// WriteJSON will write the connection in JSON format to the passed writer.
+// An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteJSON(w io.Writer) error {
 	j, err := json.Marshal(c)
 
@@ -134,6 +144,10 @@ func (c Connection) WriteJSON(w io.Writer) error {
 	return err
 }
 
+// WriteLineLong writes a list format, single-line string to the passed
+// writer interface. This is most likely used in listing connections.
+// This func will write all connection properties.
+// An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteLineLong(w io.Writer) error {
 	_, err := fmt.Fprintf(w, "%-*d %s %s %s %s %s %s %s\n",
 		ListViewColumnWidths["id"], c.Id,
@@ -149,6 +163,10 @@ func (c Connection) WriteLineLong(w io.Writer) error {
 	return err
 }
 
+// WriteLineShort writes a list format, single-line string to the passed
+// writer interface. This is most likely used in listing connections.
+// This func will write only some connection properties.
+// An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteLineShort(w io.Writer) error {
 	_, err := fmt.Fprintf(w, "%-*d %s %s %s %s\n",
 		ListViewColumnWidths["id"], c.Id,
@@ -218,6 +236,13 @@ func (c Connection) Update() error {
 	return err
 }
 
+// Validate runs checks against Connection properties. This should be run
+// before performing write operations against the database, as its purpose is
+// to catch potentially fix-able errors before making SQL angry.
+
+// Currently, the only check performed is whether the nickname is in a valid
+// format (ex. starts with a letter). Additional checks may be added in the
+// future.
 func (c Connection) Validate() error {
 	// Validate Id
 

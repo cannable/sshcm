@@ -61,6 +61,10 @@ var schemaUpgrades = map[float32]string{
 	);`,
 }
 
+// createDb will populate an empty Sqlite file with the tables and default
+// values sshcm expects.
+// The function will return nil upon completion or an error when an exception
+// occurs.
 func createDb(db *sql.DB, version float32) error {
 	// Check schemaVer
 	_, ok := schemas[version]
@@ -100,6 +104,8 @@ func createDb(db *sql.DB, version float32) error {
 	return err
 }
 
+// getDbSchemaVersion will read and return the schema version from an sshcm
+// Sqlite database file.
 func getDbSchemaVersion(db *sql.DB) (float32, error) {
 	var dbVer sql.NullString
 
@@ -126,6 +132,17 @@ func getDbSchemaVersion(db *sql.DB) (float32, error) {
 	return float32(v), err
 }
 
+// isDbCurrent calls getDbSchemaVersion to read the schema version from an
+// sshcm connection database and compares it to the version expected by the
+// specific version of this library.
+//
+// If the database version matches the version expected by this library, the
+// function will return true, nil.
+//
+// If the database version does not match the  version expected by this library
+// the function will return false, nil.
+//
+// If an error occurs, the function will return false, error.
 func isDbCurrent(db *sql.DB) (bool, error) {
 	dbVer, err := getDbSchemaVersion(db)
 
@@ -140,7 +157,19 @@ func isDbCurrent(db *sql.DB) (bool, error) {
 	return false, nil
 }
 
+// isDbSchemaVersionSupported checks whether the sshcm DB schema version is
+// supported by this library. Support, in this context, means that the DB schema
+// is either the specific version required by this library or the library can
+// perform an upgrade. This nuance can be determined by using this function in
+// concert with isDbCurrent.
+//
+// If the DB schema is supported, this function will return true, otherwise
+// it will return false.
+//
+// If an error occurs, err will be non-nil.
 func isDbSchemaVersionSupported(db *sql.DB) (bool, error) {
+	// TODO: Rewrite this and isDbCurrent to be more explicit about
+	// upgradeability circumstances.
 	dbVer, err := getDbSchemaVersion(db)
 
 	if err != nil {
@@ -153,6 +182,10 @@ func isDbSchemaVersionSupported(db *sql.DB) (bool, error) {
 	return ok, nil
 }
 
+// upgradeDbSchema upgrades an sshcm connection database to the version this
+// library supports.
+//
+// NOTE: This feature does nothing, currently.
 func upgradeDbSchema(db *sql.DB) error {
 	// TODO: Determine upgrade strategy (ex. do we have to do multiple upgrades?)
 

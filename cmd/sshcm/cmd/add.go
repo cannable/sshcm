@@ -55,6 +55,14 @@ sshcm add --nickname something --user me --host 127.0.0.1`,
 			printConnection(&c, false)
 		}
 
+		// Run smoke test on connection properties
+		err = c.Validate()
+
+		if err != nil {
+			bail(err)
+		}
+
+		// Add connection
 		id, err := db.Add(&c)
 
 		if err != nil {
