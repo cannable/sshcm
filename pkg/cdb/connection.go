@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/cannable/sshcm/pkg/misc"
 )
@@ -83,17 +84,19 @@ func (c Connection) Delete() error {
 // An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteRecordLong(w io.Writer) error {
 	offset := 12
-	s := fmt.Sprintf("%-*s: %d\n", offset, "ID", c.Id)
 
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Nickname", c.Nickname)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "User", c.User)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Host", c.Host)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Description", c.Description)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Args", c.Args)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Identity", c.Identity)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Command", c.Command)
+	var b strings.Builder
 
-	_, err := w.Write([]byte(s))
+	fmt.Fprintf(&b, "%-*s: %d\n", offset, "ID", c.Id)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Nickname", c.Nickname)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "User", c.User)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Host", c.Host)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Description", c.Description)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Args", c.Args)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Identity", c.Identity)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Command", c.Command)
+
+	_, err := fmt.Fprint(w, b.String())
 
 	return err
 }
@@ -103,14 +106,16 @@ func (c Connection) WriteRecordLong(w io.Writer) error {
 // An error will be returned if one occurs, otherwise error will be nil.
 func (c Connection) WriteRecordShort(w io.Writer) error {
 	offset := 12
-	s := fmt.Sprintf("%-*s: %d\n", offset, "ID", c.Id)
 
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Nickname", c.Nickname)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "User", c.User)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Host", c.Host)
-	s = s + fmt.Sprintf("%-*s: %s\n", offset, "Description", c.Description)
+	var b strings.Builder
 
-	_, err := w.Write([]byte(s))
+	fmt.Fprintf(&b, "%-*s: %d\n", offset, "ID", c.Id)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Nickname", c.Nickname)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "User", c.User)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Host", c.Host)
+	fmt.Fprintf(&b, "%-*s: %s\n", offset, "Description", c.Description)
+
+	_, err := fmt.Fprint(w, b.String())
 
 	return err
 }
