@@ -54,28 +54,17 @@ func Open(path string) (ConnectionDB, error) {
 		}
 	} else {
 		// Can we use the DB?
-		dbUsable, err := isDbSchemaVersionSupported(db)
+		err := validateDbSchemaVersion(schemaVersion)
 
 		if err != nil {
-			return cdb, err
-		}
+			if err == ErrSchemaUpgradeNeeded {
+				// Do schema upgrade, if needed
+				err = upgradeDbSchema(db)
 
-		if !dbUsable {
-			return cdb, ErrDbVersionNotRecognized
-		}
-
-		// See if the DB schema is old
-		dbLatest, err := isDbCurrent(db)
-
-		if err != nil {
-			return cdb, err
-		}
-
-		// Do schema upgrade, if needed
-		if !dbLatest {
-			err = upgradeDbSchema(db)
-
-			if err != nil {
+				if err != nil {
+					return cdb, err
+				}
+			} else {
 				return cdb, err
 			}
 		}

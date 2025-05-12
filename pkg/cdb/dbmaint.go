@@ -68,19 +68,14 @@ var schemaUpgrades = map[string]string{
 // The function will return nil upon completion or an error when an exception
 // occurs.
 func createDb(db *sql.DB, version string) error {
-	if !semver.IsValid(version) {
-		return ErrSchemaVerInvalid
-	}
+	err := validateDbSchemaVersion(version)
 
-	// Check schemaVer
-	_, ok := schemas[version]
-
-	if !ok {
-		return ErrSchemaVerInvalid
+	if err != nil {
+		return err
 	}
 
 	// Create table schema
-	_, err := db.Exec(schemas[version])
+	_, err = db.Exec(schemas[version])
 
 	if err != nil {
 		return err
@@ -111,7 +106,9 @@ func createDb(db *sql.DB, version string) error {
 }
 
 // getDbSchemaVersion will read and return the schema version from an sshcm
-// Sqlite database file.
+// Sqlite database file. This does not validate whether the schema version is
+// usable by this package, it simply reads the version from the DB and returns
+// the result.
 func getDbSchemaVersion(db *sql.DB) (string, error) {
 	var v sql.NullString
 
@@ -128,69 +125,56 @@ func getDbSchemaVersion(db *sql.DB) (string, error) {
 	} else if !v.Valid {
 		// The read version string is invalid
 		return "", ErrSchemaVerInvalid
-	} else if !strings.HasPrefix(v.String, "v") {
-		// The version number doesn't start with a "v"
-		// This might be recoverable, in that it might be a DB from the Tcl version
-
-		v.String = "v" + v.String
-	}
-
-	// Final check - is this a valid semantic version?
-	if !semver.IsValid(v.String) {
-		return "", ErrSchemaVerInvalid
 	}
 
 	return v.String, nil
 }
 
-// isDbCurrent calls getDbSchemaVersion to read the schema version from an
-// sshcm connection database and compares it to the version expected by the
-// specific version of this library.
+// validateDbSchemaVersion runs checks against the passed schema version to see
+// if it's supported by this package. It will return nil if the DB is usable,
+// and various errors otherwise:
 //
-// If the database version matches the version expected by this library, the
-// function will return true, nil.
-//
-// If the database version does not match the  version expected by this library
-// the function will return false, nil.
-//
-// If an error occurs, the function will return false, error.
-func isDbCurrent(db *sql.DB) (bool, error) {
-	dbVer, err := getDbSchemaVersion(db)
+//		ErrSchemaVerInvalid - Unrecoverable. Something unexpected happened.
+//		ErrSchemaTooOld - Recoverable. The caller should call upgradeDbSchema() to
+//			attempt to upgrade the DB schema to the latest version.
+//		ErrSchemaTooNew - Unrecoverable. This package (or the calling tool) needs
+//	   to be upgraded.
+//	 Others - Likely unrecoverable. Other errors returned by called funcs.
+func validateDbSchemaVersion(version string) error {
+	if !strings.HasPrefix(version, "v") {
+		// The version number doesn't start with a "v"
+		// This might be recoverable, in that it might be a DB from the Tcl version
 
-	if err != nil {
-		return false, err
+		version = "v" + version
 	}
 
-	if semver.Compare(schemaVersion, dbVer) == 0 {
-		return true, nil
+	// Is this a valid semantic version?
+	if !semver.IsValid(version) {
+		return ErrSchemaVerInvalid
 	}
 
-	return false, nil
-}
+	// Compare the version number to this tool
+	compare := semver.Compare(version, schemaVersion)
 
-// isDbSchemaVersionSupported checks whether the sshcm DB schema version is
-// supported by this library. Support, in this context, means that the DB schema
-// is either the specific version required by this library or the library can
-// perform an upgrade. This nuance can be determined by using this function in
-// concert with isDbCurrent.
-//
-// If the DB schema is supported, this function will return true, otherwise
-// it will return false.
-//
-// If an error occurs, err will be non-nil.
-func isDbSchemaVersionSupported(db *sql.DB) (bool, error) {
-	// TODO: Rewrite this and isDbCurrent to be more explicit about
-	// upgradeability circumstances.
-	dbVer, err := getDbSchemaVersion(db)
-
-	if err != nil {
-		return false, err
+	if compare == 0 {
+		// If the DB is the same version as this tool supports, we're done with the
+		// checks and good to go!
+		return nil
+	} else if compare > 0 {
+		// The DB is newer than this tool
+		return ErrSchemaTooNew
 	}
 
+	// The DB schema version is too old. See if an upgrade is supported.
 	// Check schemaVer
-	_, ok := schemas[dbVer]
+	_, ok := schemaUpgrades[version]
 
-	return ok, nil
+	if ok {
+		return ErrSchemaUpgradeNeeded
+	}
+
+	// This tool can't upgrade the schema
+	return ErrSchemaNoUpgrade
 }
 
 // upgradeDbSchema upgrades an sshcm connection database to the version this

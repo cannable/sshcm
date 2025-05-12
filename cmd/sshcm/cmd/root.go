@@ -52,7 +52,6 @@ func bail(err error) {
 		cdb.ErrConnNoId,
 		cdb.ErrConnNoNickname,
 		cdb.ErrConnectionNotFound,
-		cdb.ErrDbVersionNotRecognized,
 		cdb.ErrDuplicateNickname,
 		cdb.ErrIdNotExist,
 		cdb.ErrInvalidConnectionProperty,
