@@ -175,14 +175,37 @@ func openDb() cdb.ConnectionDB {
 	}
 
 	// See if calling Open will create a new DB file
+	create := false
 	if _, err := os.Stat(path); err != nil {
 		fmt.Printf("Connection file '%s' does not exist and will be created.\n", path)
+		create = true
 	}
 
-	db, err := cdb.Open(path)
+	db, err := cdb.Connect("sqlite", path)
 
 	if err != nil {
 		panic(err)
+	}
+
+	// Create tables, if we need to. If not, see if upgrade is needed
+	if create {
+		err = db.InitializeDb(cdb.SchemaVersion)
+
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		// Can we use the DB?
+		err = db.CheckDbHealth()
+
+		if err != nil {
+			if err == cdb.ErrSchemaUpgradeNeeded {
+				// TODO: Do schema upgrade, if needed
+
+			} else {
+				panic(err)
+			}
+		}
 	}
 
 	return db

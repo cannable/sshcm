@@ -7,7 +7,7 @@ import (
 	"golang.org/x/mod/semver"
 )
 
-const schemaVersion = "v1.1"
+const SchemaVersion = "v1.1"
 
 var schemas = map[string]string{
 	"v1.0": `
@@ -63,12 +63,28 @@ var schemaUpgrades = map[string]string{
 	);`,
 }
 
-// createDb will populate an empty Sqlite file with the tables and default
+// CheckDbHealth runs health checks on the connection DB and returns an error
+// if there is an issue.
+func (conndb *ConnectionDB) CheckDbHealth() error {
+	// Read the DB version
+	version, err := conndb.GetDbSchemaVersion()
+
+	if err != nil {
+		return err
+	}
+
+	// Return validation checks
+	return ValidateDbSchemaVersion(version)
+}
+
+// InitializeDb will populate an empty Sqlite file with the tables and default
 // values sshcm expects.
 // The function will return nil upon completion or an error when an exception
 // occurs.
-func createDb(db *sql.DB, version string) error {
-	err := validateDbSchemaVersion(version)
+func (conndb *ConnectionDB) InitializeDb(version string) error {
+	err := ValidateDbSchemaVersion(version)
+
+	db := conndb.connection
 
 	if err != nil {
 		return err
@@ -105,12 +121,14 @@ func createDb(db *sql.DB, version string) error {
 	return err
 }
 
-// getDbSchemaVersion will read and return the schema version from an sshcm
+// GetDbSchemaVersion will read and return the schema version from an sshcm
 // Sqlite database file. This does not validate whether the schema version is
 // usable by this package, it simply reads the version from the DB and returns
 // the result.
-func getDbSchemaVersion(db *sql.DB) (string, error) {
+func (conndb *ConnectionDB) GetDbSchemaVersion() (string, error) {
 	var v sql.NullString
+
+	db := conndb.connection
 
 	row := db.QueryRow(
 		`SELECT value
@@ -130,7 +148,7 @@ func getDbSchemaVersion(db *sql.DB) (string, error) {
 	return v.String, nil
 }
 
-// validateDbSchemaVersion runs checks against the passed schema version to see
+// ValidateDbSchemaVersion runs checks against the passed schema version to see
 // if it's supported by this package. It will return nil if the DB is usable,
 // and various errors otherwise:
 //
@@ -140,7 +158,7 @@ func getDbSchemaVersion(db *sql.DB) (string, error) {
 //		ErrSchemaTooNew - Unrecoverable. This package (or the calling tool) needs
 //	   to be upgraded.
 //	 Others - Likely unrecoverable. Other errors returned by called funcs.
-func validateDbSchemaVersion(version string) error {
+func ValidateDbSchemaVersion(version string) error {
 	if !strings.HasPrefix(version, "v") {
 		// The version number doesn't start with a "v"
 		// This might be recoverable, in that it might be a DB from the Tcl version
@@ -154,7 +172,7 @@ func validateDbSchemaVersion(version string) error {
 	}
 
 	// Compare the version number to this tool
-	compare := semver.Compare(version, schemaVersion)
+	compare := semver.Compare(version, SchemaVersion)
 
 	if compare == 0 {
 		// If the DB is the same version as this tool supports, we're done with the
@@ -175,16 +193,4 @@ func validateDbSchemaVersion(version string) error {
 
 	// This tool can't upgrade the schema
 	return ErrSchemaNoUpgrade
-}
-
-// upgradeDbSchema upgrades an sshcm connection database to the version this
-// library supports.
-//
-// NOTE: This feature does nothing, currently.
-func upgradeDbSchema(db *sql.DB) error {
-	// TODO: Determine upgrade strategy (ex. do we have to do multiple upgrades?)
-
-	// TODO: Do upgrades
-
-	return nil
 }

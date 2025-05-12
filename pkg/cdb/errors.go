@@ -16,6 +16,7 @@ var ErrInvalidNickname = errors.New("invalid nickname")
 var ErrNickNameNotExist = errors.New("connection nickname does not exist")
 var ErrNicknameLetter = errors.New("nickname does not begin with a letter")
 var ErrPropertyInvalid = errors.New("property is invalid")
+var ErrUnsupportedSqlDriver = errors.New("sql driver not supported")
 
 // DB schema errors
 var ErrSchemaVerInvalid = errors.New("conndb: invalid schema version")

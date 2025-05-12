@@ -6,7 +6,15 @@ import (
 )
 
 type ConnectionDB struct {
-	connection *sql.DB
+	connection DbConnIface
+}
+
+// DbConnIface provides an interface for interacting with a DB (or mock)
+type DbConnIface interface {
+	Close() error
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
 }
 
 func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
