@@ -167,7 +167,7 @@ func validateDbSchemaVersion(version string) error {
 
 	// The DB schema version is too old. See if an upgrade is supported.
 	// Check schemaVer
-	_, ok := schemaUpgrades[version]
+	_, ok := schemas[version]
 
 	if ok {
 		return ErrSchemaUpgradeNeeded

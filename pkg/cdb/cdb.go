@@ -53,8 +53,14 @@ func Open(path string) (ConnectionDB, error) {
 			return cdb, err
 		}
 	} else {
+		// Read the DB version
+		version, err := getDbSchemaVersion(db)
+		if err != nil {
+			return cdb, err
+		}
+
 		// Can we use the DB?
-		err := validateDbSchemaVersion(schemaVersion)
+		err = validateDbSchemaVersion(version)
 
 		if err != nil {
 			if err == ErrSchemaUpgradeNeeded {

@@ -55,6 +55,10 @@ func IsValidProperty(property string) bool {
 // If the tests pass and the nickname is valid, nil is returned.
 // If any test fails, a relevant error is returned.
 func ValidateNickname(nickname string) error {
+	if len(nickname) < 1 {
+		return ErrInvalidNickname
+	}
+
 	firstChar := []rune(nickname)[0]
 
 	if !unicode.IsLetter(firstChar) {
@@ -75,9 +79,15 @@ func ValidateNickname(nickname string) error {
 // arguments - because a user may choose to make a connection by id or
 // nickname, this func is the frontline validation of that user input.
 func ValidateId(id string) error {
-	_, err := strconv.Atoi(id)
+	// ids must be a valid integer
+	i, err := strconv.Atoi(id)
 
 	if err != nil {
+		return ErrInvalidId
+	}
+
+	// id numbers must start at 1
+	if i < 1 {
 		return ErrInvalidId
 	}
 
