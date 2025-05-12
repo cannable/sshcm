@@ -2,13 +2,15 @@ package cdb
 
 import (
 	"database/sql"
-	"strconv"
+	"strings"
+
+	"golang.org/x/mod/semver"
 )
 
-const schemaVersion = 1.1
+const schemaVersion = "v1.1"
 
-var schemas = map[float32]string{
-	1.0: `
+var schemas = map[string]string{
+	"v1.0": `
 		CREATE TABLE 'global' (
 			'setting'   TEXT UNIQUE,
 			'value'     TEXT,
@@ -29,7 +31,7 @@ var schemas = map[float32]string{
 			'identity'      TEXT,
 			'command'       TEXT
 		);`,
-	1.1: `
+	"v1.1": `
 		CREATE TABLE 'global' (
 			'setting'	TEXT UNIQUE,
 			'value'	    TEXT,
@@ -53,8 +55,8 @@ var schemas = map[float32]string{
 		);`,
 }
 
-var schemaUpgrades = map[float32]string{
-	1.1: `
+var schemaUpgrades = map[string]string{
+	"v1.1": `
 		ALTER TABLE 'connections' ADD COLUMN 'binary' TEXT;
 		INSERT INTO 'defaults' (setting,value) VALUES ('binary',NULL);
 		UPDATE 'global' SET value='1.1' WHERE setting='schema_version';
@@ -65,7 +67,11 @@ var schemaUpgrades = map[float32]string{
 // values sshcm expects.
 // The function will return nil upon completion or an error when an exception
 // occurs.
-func createDb(db *sql.DB, version float32) error {
+func createDb(db *sql.DB, version string) error {
+	if !semver.IsValid(version) {
+		return ErrSchemaVerInvalid
+	}
+
 	// Check schemaVer
 	_, ok := schemas[version]
 
@@ -106,30 +112,35 @@ func createDb(db *sql.DB, version float32) error {
 
 // getDbSchemaVersion will read and return the schema version from an sshcm
 // Sqlite database file.
-func getDbSchemaVersion(db *sql.DB) (float32, error) {
-	var dbVer sql.NullString
+func getDbSchemaVersion(db *sql.DB) (string, error) {
+	var v sql.NullString
 
 	row := db.QueryRow(
 		`SELECT value
 		FROM global
 		WHERE setting = 'schema_version'`)
-	err := row.Scan(&dbVer)
+	err := row.Scan(&v)
 
+	// Run some checks against the version number we pulled from the database
 	if err != nil {
-		return 0, err
+		// We got an error running the query
+		return "", err
+	} else if !v.Valid {
+		// The read version string is invalid
+		return "", ErrSchemaVerInvalid
+	} else if !strings.HasPrefix(v.String, "v") {
+		// The version number doesn't start with a "v"
+		// This might be recoverable, in that it might be a DB from the Tcl version
+
+		v.String = "v" + v.String
 	}
 
-	if !dbVer.Valid {
-		return 0, err
+	// Final check - is this a valid semantic version?
+	if !semver.IsValid(v.String) {
+		return "", ErrSchemaVerInvalid
 	}
 
-	v, err := strconv.ParseFloat(dbVer.String, 32)
-
-	if !dbVer.Valid {
-		return 0, err
-	}
-
-	return float32(v), err
+	return v.String, nil
 }
 
 // isDbCurrent calls getDbSchemaVersion to read the schema version from an
@@ -150,7 +161,7 @@ func isDbCurrent(db *sql.DB) (bool, error) {
 		return false, err
 	}
 
-	if schemaVersion == dbVer {
+	if semver.Compare(schemaVersion, dbVer) == 0 {
 		return true, nil
 	}
 

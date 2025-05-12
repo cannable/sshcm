@@ -25,6 +25,20 @@ original. Also the documentation could be better. Things on the to-do list:
 go install github.com/cannable/sshcm/cmd/sshcm@latest
 ```
 
+## Switching from the Tcl script
+
+You should take a backup of your connection DB file before running sshcm.
+
+The first official release (v1.2.0) of this tool uses DB schema 1.1. The tool is
+able to use connection DBs from the last version of the Tcl script as-is.
+Additionally, the Tcl script should continue to work until an sshcm release
+upgrades the schema.
+
+The Tcl script is not able to use connection DBs created by sshcm. Export/import
+from sshcm to the Tcl tool should work, with the proviso that connection IDs may
+change. If you need to avoid this, you can try opening the connection DB file in
+a sqlite tool and flipping the version setting from "v1.1" to "1.1".
+
 # Usage
 
 ```
