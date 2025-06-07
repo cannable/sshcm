@@ -249,19 +249,33 @@ func (c Connection) Update() error {
 // format (ex. starts with a letter). Additional checks may be added in the
 // future.
 func (c Connection) Validate() error {
-	// Validate Id
-
 	// Validate Nickname
+	if c.Nickname == "" {
+		return ErrConnNoNickname
+	}
+
 	if err := ValidateNickname(c.Nickname); err != nil {
 		return err
 	}
 
 	// Validate Host
+	if c.Host == "" {
+		return ErrConnNoHost
+	}
 	// Validate User
 	// Validate Description
 	// Validate Args
 	// Validate Identity
 	// Validate Command
+
+	// Validate Id
+	if c.Id < 0 {
+		return ErrInvalidId
+	}
+
+	if c.Id == 0 {
+		return ErrConnIdZero
+	}
 
 	return nil
 }

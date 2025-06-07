@@ -2,8 +2,10 @@ package cdb
 
 import "errors"
 
-var ErrConnNoDb = errors.New("connection does not have a parent db attached")
 var ErrConnFromDbInvalid = errors.New("connection from DB is invalid")
+var ErrConnIdZero = errors.New("connection id is zero")
+var ErrConnNoDb = errors.New("connection does not have a parent db attached")
+var ErrConnNoHost = errors.New("connection does not have a host attached")
 var ErrConnNoId = errors.New("connection does not have an id attached")
 var ErrConnNoNickname = errors.New("connection does not have a nickname attached")
 var ErrConnectionNotFound = errors.New("connection not found")
