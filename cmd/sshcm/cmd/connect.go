@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"slices"
 	"syscall"
 
@@ -151,16 +152,40 @@ sshcm c something --user=someone
 			fmt.Printf("arguments:'%s'\n", execArgs)
 		}
 
-		// Connect
+		// We want to pass our environment to the new process
 		execEnv := os.Environ()
 
-		err = syscall.Exec(execBin, execArgs, execEnv)
-
-		if err != nil {
-			panic(err)
-		}
-
+		// Now's a good time to close the connection DB, since we're not going to
+		// need it anymore
 		db.Close()
+
+		// Run the SSH command differently based on the OS on which we're running
+		switch runtime.GOOS {
+		case "windows":
+			// On Windows, use os/exec to run the process
+			exe := exec.Cmd{
+				Path:   execBin,
+				Args:   execArgs,
+				Env:    execEnv,
+				Stdin:  os.Stdin,
+				Stdout: os.Stdout,
+				Stderr: os.Stderr,
+			}
+
+			err = exe.Run()
+
+			if err != nil {
+				panic(err)
+			}
+
+		default:
+			// On non-Windows systems, use syscall exec to replace the current process
+			err = syscall.Exec(execBin, execArgs, execEnv)
+
+			if err != nil {
+				panic(err)
+			}
+		}
 	},
 }
 
