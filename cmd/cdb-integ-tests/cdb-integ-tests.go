@@ -86,7 +86,13 @@ func main() {
 	}
 
 	// Open DB (this should create a new one)
-	db, err := cdb.Open(testFilePath)
+	db, err := cdb.Connect("sqlite", testFilePath)
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.InitializeDb(cdb.SchemaVersion)
 
 	if err != nil {
 		log.Fatal("open fail", err)
