@@ -83,3 +83,45 @@ func TestConnectionDB_AddNoHost(t *testing.T) {
 		return
 	}
 }
+
+func TestConnectionDB_Exists(t *testing.T) {
+	type args struct {
+		id int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "true",
+			args: args{
+				id: 20,
+			},
+			want: true,
+		},
+		{
+			name: "false",
+			args: args{
+				id: 3,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			conndb, mock := newMockConnDb()
+
+			if tt.want {
+				rows := sqlmock.NewRows([]string{"id"}).AddRow("20")
+				mock.ExpectQuery("SELECT id").WithArgs(tt.args.id).WillReturnRows(rows)
+			} else {
+				mock.ExpectQuery("SELECT id").WithArgs(tt.args.id)
+			}
+
+			if got := conndb.Exists(tt.args.id); got != tt.want {
+				t.Errorf("ConnectionDB.Exists() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
