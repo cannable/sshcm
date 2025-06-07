@@ -2,6 +2,7 @@ package cdb
 
 import (
 	"database/sql"
+	"errors"
 	"strconv"
 )
 
@@ -94,8 +95,6 @@ func (conndb *ConnectionDB) ExistsByProperty(property string, value string) bool
 }
 
 func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
-	var c Connection
-
 	// Get connection details from DB
 	row := conndb.connection.QueryRow(`
 		SELECT
@@ -112,10 +111,56 @@ func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
 		ORDER BY id;
 	`, id)
 
-	c, err := rowToConnection(row)
+	// Get connection details from DB
+	var sqlId sql.NullInt64
+	var nickname, host, user, description, args, identity, command sql.NullString
+
+	err := row.Scan(
+		&sqlId,
+		&nickname,
+		&host,
+		&user,
+		&description,
+		&args,
+		&identity,
+		&command,
+	)
+
+	// Check SQL scanning errors before continuing
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Connection{}, ErrConnectionNotFound
+		}
+
+		return Connection{}, err
+	}
+
+	// If any of the connection properties are invalid, fail
+	if !(sqlId.Valid ||
+		nickname.Valid ||
+		host.Valid ||
+		user.Valid ||
+		description.Valid ||
+		args.Valid ||
+		identity.Valid ||
+		command.Valid) {
+		return Connection{}, ErrConnFromDbInvalid
+	}
 
 	// Attach the connection to its parent (so that connection methods work)
-	c.db = conndb
+	c := Connection{
+		db:          conndb,
+		Id:          sqlId.Int64,
+		Nickname:    nickname.String,
+		Host:        host.String,
+		User:        user.String,
+		Description: description.String,
+		Args:        args.String,
+		Identity:    identity.String,
+		Command:     command.String,
+	}
+
+	err = c.Validate()
 
 	return c, err
 }
@@ -191,10 +236,8 @@ func (conndb *ConnectionDB) GetByIdOrNickname(arg string) (Connection, error) {
 }
 
 func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connection, error) {
-	var c Connection
-
 	if !IsValidProperty(property) {
-		return c, ErrPropertyInvalid
+		return Connection{}, ErrPropertyInvalid
 	}
 
 	// Get connection details from DB
@@ -211,10 +254,56 @@ func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connec
 		FROM connections
 		WHERE `+property+" = $1", value)
 
-	c, err := rowToConnection(row)
+	// Get connection details from DB
+	var sqlId sql.NullInt64
+	var nickname, host, user, description, args, identity, command sql.NullString
+
+	err := row.Scan(
+		&sqlId,
+		&nickname,
+		&host,
+		&user,
+		&description,
+		&args,
+		&identity,
+		&command,
+	)
+
+	// Check SQL scanning errors before continuing
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Connection{}, ErrConnectionNotFound
+		}
+
+		return Connection{}, err
+	}
+
+	// If any of the connection properties are invalid, fail
+	if !(sqlId.Valid ||
+		nickname.Valid ||
+		host.Valid ||
+		user.Valid ||
+		description.Valid ||
+		args.Valid ||
+		identity.Valid ||
+		command.Valid) {
+		return Connection{}, ErrConnFromDbInvalid
+	}
 
 	// Attach the connection to its parent (so that connection methods work)
-	c.db = conndb
+	c := Connection{
+		db:          conndb,
+		Id:          sqlId.Int64,
+		Nickname:    nickname.String,
+		Host:        host.String,
+		User:        user.String,
+		Description: description.String,
+		Args:        args.String,
+		Identity:    identity.String,
+		Command:     command.String,
+	}
+
+	err = c.Validate()
 
 	return c, err
 }
