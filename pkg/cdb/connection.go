@@ -201,9 +201,13 @@ func (c Connection) Update() error {
 		return ErrConnNoDb
 	}
 
-	// Do we have an id?
-	if c.Id == 0 {
-		return ErrConnNoId
+	// Validate connection properties
+	err := c.Validate()
+
+	// In this case, we want a non-zero connection ID, so err must be nil before
+	// continuing
+	if err != nil {
+		return err
 	}
 
 	// Does the ID exist?
@@ -211,13 +215,8 @@ func (c Connection) Update() error {
 		return ErrIdNotExist
 	}
 
-	// Do we have a nickname?
-	if len(c.Nickname) < 1 {
-		return ErrConnNoNickname
-	}
-
 	// Try updating the connection
-	_, err := c.db.connection.Exec(`
+	_, err = c.db.connection.Exec(`
 		UPDATE connections SET
 			nickname = $2,
 			host = $3,
@@ -269,6 +268,7 @@ func (c Connection) Validate() error {
 	// Validate Command
 
 	// Validate Id
+	// This needs to be the last test, as non-zero connection IDs are not catastrophic
 	if c.Id < 0 {
 		return ErrInvalidId
 	}

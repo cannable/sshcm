@@ -58,7 +58,8 @@ sshcm add --nickname something --user me --host 127.0.0.1`,
 		// Run smoke test on connection properties
 		err = c.Validate()
 
-		if err != nil {
+		// The only error we should get from validation is that the connection ID is zero.
+		if err != cdb.ErrConnIdZero {
 			bail(err)
 		}
 

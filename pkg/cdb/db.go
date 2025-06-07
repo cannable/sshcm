@@ -19,9 +19,11 @@ type DbConnIface interface {
 }
 
 func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
-	// Do we have a nickname?
-	if len(c.Nickname) < 1 {
-		return -1, ErrConnNoNickname
+	err := c.Validate()
+
+	// The only error we should get from validation is that the connection ID is zero.
+	if err != ErrConnIdZero {
+		return -1, err
 	}
 
 	// See if the nickname already exists

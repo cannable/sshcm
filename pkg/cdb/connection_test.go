@@ -3,18 +3,6 @@ package cdb
 import "testing"
 
 func TestConnection_Validate(t *testing.T) {
-	type fields struct {
-		db          *ConnectionDB
-		Id          int64
-		Nickname    string
-		Host        string
-		User        string
-		Description string
-		Args        string
-		Identity    string
-		Command     string
-		Binary      string
-	}
 	tests := []struct {
 		name      string
 		fields    Connection
