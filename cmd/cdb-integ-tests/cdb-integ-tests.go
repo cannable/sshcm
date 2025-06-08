@@ -145,14 +145,26 @@ func main() {
 	log.Println("update: updated connection", cn.Id)
 
 	// Test getting a connection by id
-	if db.Exists(1) {
+	exists, err := db.Exists(1)
+
+	if err != nil {
+		log.Fatal("get by nickname: failed ", err)
+	}
+
+	if exists {
 		log.Println("exists: got id", 1)
 	} else {
 		log.Fatal("exists: failed to get id ", 1, err)
 	}
 
 	// Test getting a non-existent connection by id
-	if db.Exists(99) {
+	exists, err = db.Exists(99)
+
+	if err != nil {
+		log.Fatal("get by nickname: failed ", err)
+	}
+
+	if exists {
 		log.Fatal("exists: got non-existent id ", 99, err)
 	} else {
 		log.Println("exists: didn't get non-existent id", 99)

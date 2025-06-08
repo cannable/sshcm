@@ -65,12 +65,18 @@ func (c Connection) Delete() error {
 	}
 
 	// Does the ID exist?
-	if !c.db.Exists(c.Id) {
+	exists, err := c.db.Exists(c.Id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return ErrIdNotExist
 	}
 
 	// Try deleting the connection
-	_, err := c.db.connection.Exec(`
+	_, err = c.db.connection.Exec(`
         DELETE FROM connections
 		WHERE id = $1
 		`,
@@ -211,7 +217,13 @@ func (c Connection) Update() error {
 	}
 
 	// Does the ID exist?
-	if !c.db.Exists(c.Id) {
+	exists, err := c.db.Exists(c.Id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
 		return ErrIdNotExist
 	}
 

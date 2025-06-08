@@ -27,7 +27,11 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 	}
 
 	// See if the nickname already exists
-	if conndb.ExistsByProperty("nickname", c.Nickname) {
+	exists, err := conndb.ExistsByProperty("nickname", c.Nickname)
+
+	if err != nil {
+		return -1, err
+	} else if exists {
 		return -1, ErrDuplicateNickname
 	}
 
@@ -72,18 +76,25 @@ func (conndb *ConnectionDB) Add(c *Connection) (int64, error) {
 	return id, err
 }
 
-func (conndb *ConnectionDB) Exists(id int64) bool {
+func (conndb *ConnectionDB) Exists(id int64) (bool, error) {
 	var check int
 
 	err := conndb.connection.QueryRow("SELECT id FROM connections WHERE id = $1", id).Scan(&check)
 
-	return err == nil
+	// Return true/false explicitly (based on specific success/fail conditions)
+	if err == nil {
+		return true, nil
+	} else if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return false, err
 }
 
-func (conndb *ConnectionDB) ExistsByProperty(property string, value string) bool {
-
+func (conndb *ConnectionDB) ExistsByProperty(property string, value string) (bool, error) {
+	// Make sure we're dealing with a valid property first
 	if !IsValidProperty(property) {
-		return false
+		return false, ErrInvalidConnectionProperty
 	}
 
 	var check int
@@ -93,7 +104,14 @@ func (conndb *ConnectionDB) ExistsByProperty(property string, value string) bool
 		FROM connections
 		WHERE `+property+" = $1", value).Scan(&check)
 
-	return err == nil
+	// Return true/false explicitly (based on specific success/fail conditions)
+	if err == nil {
+		return true, nil
+	} else if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return false, err
 }
 
 func (conndb *ConnectionDB) Get(id int64) (Connection, error) {

@@ -64,7 +64,11 @@ sshcm s asdf --nickname fdsa`,
 			}
 
 			// See if the new nickname exists already.
-			exists := db.ExistsByProperty("nickname", cmdCnNickname)
+			exists, err := db.ExistsByProperty("nickname", cmdCnNickname)
+
+			if err != nil {
+				bail(err)
+			}
 
 			if exists {
 				// Bail if the nickname already exists and isn't the current connection

@@ -133,7 +133,14 @@ func importConnections(f *os.File) error {
 			// See if the nickname exists. If it does, we'll start with the existing
 			// connection and update it
 			update := false
-			if db.ExistsByProperty("nickname", importNickname) {
+
+			exists, err := db.ExistsByProperty("nickname", importNickname)
+
+			if err != nil {
+				return err
+			}
+
+			if exists {
 				update = true
 				c, err = db.GetByProperty("nickname", importNickname)
 
@@ -210,7 +217,13 @@ func importConnections(f *os.File) error {
 			}
 
 			// See if the nickname exists. If it does, we'll do an update.
-			if db.ExistsByProperty("nickname", c.Nickname) {
+			exists, err := db.ExistsByProperty("nickname", c.Nickname)
+
+			if err != nil {
+				return err
+			}
+
+			if exists {
 				newCn := c
 
 				c, err = db.GetByProperty("nickname", c.Nickname)

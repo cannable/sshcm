@@ -33,7 +33,11 @@ sshcm add --nickname something --user me --host 127.0.0.1`,
 		}
 
 		// Nicknames must be unique. See if this one exists.
-		exists := db.ExistsByProperty("nickname", cmdCnNickname)
+		exists, err := db.ExistsByProperty("nickname", cmdCnNickname)
+
+		if err != nil {
+			bail(err)
+		}
 
 		if exists {
 			fmt.Fprintf(os.Stderr, "Can't add '%s'. Nickname already exists.\n", cmdCnNickname)
