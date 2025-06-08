@@ -1,4 +1,4 @@
 #!/usr/bin/bash
 
 clear
-go test ./pkg/cdb/
+go run ./cmd/sshcm/ $*
