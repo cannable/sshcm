@@ -175,7 +175,7 @@ sshcm c something --user=someone
 			err = exe.Run()
 
 			if err != nil {
-				panic(err)
+				fmt.Println("Error: ", err)
 			}
 
 		default:

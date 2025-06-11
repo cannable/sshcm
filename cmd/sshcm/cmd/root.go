@@ -199,10 +199,15 @@ func openDb() cdb.ConnectionDB {
 		err = db.CheckDbHealth()
 
 		if err != nil {
-			if err == cdb.ErrSchemaUpgradeNeeded {
+			switch err {
+			case cdb.ErrSchemaUpgradeNeeded:
 				// TODO: Do schema upgrade, if needed
 
-			} else {
+			case cdb.ErrSchemaTooNew:
+				// The schema version being too new for the tool is not a catastrophic
+				// error.
+				bail(err)
+			default:
 				panic(err)
 			}
 		}
