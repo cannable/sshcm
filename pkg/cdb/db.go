@@ -82,9 +82,10 @@ func (conndb *ConnectionDB) Exists(id int64) (bool, error) {
 	err := conndb.connection.QueryRow("SELECT id FROM connections WHERE id = $1", id).Scan(&check)
 
 	// Return true/false explicitly (based on specific success/fail conditions)
-	if err == nil {
+	switch err {
+	case nil:
 		return true, nil
-	} else if err == sql.ErrNoRows {
+	case sql.ErrNoRows:
 		return false, nil
 	}
 
@@ -105,9 +106,10 @@ func (conndb *ConnectionDB) ExistsByProperty(property string, value string) (boo
 		WHERE `+property+" = $1", value).Scan(&check)
 
 	// Return true/false explicitly (based on specific success/fail conditions)
-	if err == nil {
+	switch err {
+	case nil:
 		return true, nil
-	} else if err == sql.ErrNoRows {
+	case sql.ErrNoRows:
 		return false, nil
 	}
 

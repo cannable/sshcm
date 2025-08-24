@@ -1,6 +1,7 @@
 package cdb
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -208,5 +209,43 @@ func TestConnectionDB_ExistsByProperty(t *testing.T) {
 				t.Errorf("ConnectionDB.ExistsByProperty() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestConnectionDB_DeleteShouldSucceed(t *testing.T) {
+	// Set up test DB mocking
+	conndb, mock := newMockConnDb()
+	rows := sqlmock.NewRows([]string{"id"}).AddRow("20")
+
+	// Expect the call to Exists
+	mock.ExpectQuery("SELECT id").WithArgs(20).WillReturnRows(rows)
+
+	// Expect the DELETE
+	delres := sqlmock.NewResult(1, 1)
+	mock.ExpectExec("DELETE FROM connections WHERE").WithArgs(20).WillReturnResult(delres)
+
+	// Run test
+	err := conndb.Delete(20)
+
+	if err != nil {
+		// Got an error when we didn't want one
+		t.Errorf("ConnectionDB.Delete() error = %v", err)
+	}
+}
+
+func TestConnectionDB_DeleteFailNotFound(t *testing.T) {
+	// Set up test DB mocking
+	conndb, mock := newMockConnDb()
+	rows := sqlmock.NewRows([]string{"id"})
+
+	// Expect the call to Exists
+	mock.ExpectQuery("SELECT id").WithArgs(20).WillReturnRows(rows)
+
+	// Run test
+	err := conndb.Delete(20)
+
+	if err != ErrIdNotExist {
+		// Got an error when we didn't want one
+		t.Errorf("ConnectionDB.Delete() error = %v", err)
 	}
 }
