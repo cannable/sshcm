@@ -169,7 +169,6 @@ func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
 
 	// Attach the connection to its parent (so that connection methods work)
 	c := Connection{
-		db:          conndb,
 		Id:          sqlId.Int64,
 		Nickname:    nickname.String,
 		Host:        host.String,
@@ -344,7 +343,6 @@ func (conndb *ConnectionDB) GetByProperty(property string, value string) (Connec
 
 	// Attach the connection to its parent (so that connection methods work)
 	c := Connection{
-		db:          conndb,
 		Id:          sqlId.Int64,
 		Nickname:    nickname.String,
 		Host:        host.String,
@@ -420,7 +418,7 @@ func (conndb *ConnectionDB) Update(id int64, c *Connection) error {
 	}
 
 	// Try updating the connection
-	_, err = c.db.connection.Exec(`
+	_, err = conndb.connection.Exec(`
 		UPDATE connections SET
 			nickname = $2,
 			host = $3,

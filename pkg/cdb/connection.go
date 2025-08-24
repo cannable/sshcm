@@ -25,16 +25,15 @@ import (
 // database bypassing validations that avoid throwing SQL errors (like
 // checking for Nickname uniqueness).
 type Connection struct {
-	db          *ConnectionDB // pointer to parent ConnectionDB
-	Id          int64         // unique connection id
-	Nickname    string        // unique connection nickname
-	Host        string        // connection-specific host name/IP address
-	User        string        // connection-specific user name
-	Description string        // connection-specific description (hopefully friendly)
-	Args        string        // connection-specific arguments to pass to SSH Command
-	Identity    string        // connection-specific OpenSSH-style identity string (ex. path or name)
-	Command     string        // connection-specific Command to run (ex. sftp)
-	Binary      string        // to be deleted
+	Id          int64  // unique connection id
+	Nickname    string // unique connection nickname
+	Host        string // connection-specific host name/IP address
+	User        string // connection-specific user name
+	Description string // connection-specific description (hopefully friendly)
+	Args        string // connection-specific arguments to pass to SSH Command
+	Identity    string // connection-specific OpenSSH-style identity string (ex. path or name)
+	Command     string // connection-specific Command to run (ex. sftp)
+	Binary      string // to be deleted
 }
 
 var ListViewColumnWidths = map[string]int{
