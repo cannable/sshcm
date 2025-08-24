@@ -48,43 +48,6 @@ var ListViewColumnWidths = map[string]int{
 	"command":     10,
 }
 
-// Delete removes a connection from the underlying SQL database.
-// It will return nil if the operation succeeeded and err otherwise.
-// Several checks are implemented that return package-specific errors. These
-// checks are simple and only cover obvious situations that will cause SQL
-// query exceptions.
-func (c Connection) Delete() error {
-	// See if this connection has a parent ConnectionDB attached
-	if c.db == nil {
-		return ErrConnNoDb
-	}
-
-	// Do we have an id?
-	if c.Id == 0 {
-		return ErrConnNoId
-	}
-
-	// Does the ID exist?
-	exists, err := c.db.Exists(c.Id)
-
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return ErrIdNotExist
-	}
-
-	// Try deleting the connection
-	_, err = c.db.connection.Exec(`
-        DELETE FROM connections
-		WHERE id = $1
-		`,
-		sqlNullableInt64(c.Id))
-
-	return err
-}
-
 // WriteRecordLong writes a record-format, multi-line string to the passed
 // writer interface. This func will write all connection properties.
 // An error will be returned if one occurs, otherwise error will be nil.
@@ -194,62 +157,6 @@ func (c Connection) WriteLineShort(w io.Writer) error {
 // format: "nickname (id)".
 func (c Connection) String() string {
 	return fmt.Sprintf("%s (%d)", c.Nickname, c.Id)
-}
-
-// Update updates an existing connection in the SQL database.
-// It will return nil if the operation succeeeded and err otherwise.
-// Several checks are implemented that return package-specific errors. These
-// checks are simple and only cover obvious situations that will cause SQL
-// query exceptions.
-func (c Connection) Update() error {
-	// See if this connection has a parent ConnectionDB attached
-	if c.db == nil {
-		return ErrConnNoDb
-	}
-
-	// Validate connection properties
-	err := c.Validate()
-
-	// In this case, we want a non-zero connection ID, so err must be nil before
-	// continuing
-	if err != nil {
-		return err
-	}
-
-	// Does the ID exist?
-	exists, err := c.db.Exists(c.Id)
-
-	if err != nil {
-		return err
-	}
-
-	if !exists {
-		return ErrIdNotExist
-	}
-
-	// Try updating the connection
-	_, err = c.db.connection.Exec(`
-		UPDATE connections SET
-			nickname = $2,
-			host = $3,
-			user = $4,
-			description = $5,
-			args = $6,
-			identity = $7,
-			command = $8
-		WHERE id = $1
-		`,
-		sqlNullableInt64(c.Id),
-		sqlNullableString(c.Nickname),
-		sqlNullableString(c.Host),
-		sqlNullableString(c.User),
-		sqlNullableString(c.Description),
-		sqlNullableString(c.Args),
-		sqlNullableString(c.Identity),
-		sqlNullableString(c.Command),
-	)
-
-	return err
 }
 
 // Validate runs checks against Connection properties. This should be run

@@ -118,7 +118,7 @@ sshcm s asdf --nickname fdsa`,
 		}
 
 		// Update the connection
-		err = c.Update()
+		err = db.Update(c.Id, &c)
 
 		if err != nil {
 			panic(err)

@@ -173,7 +173,7 @@ func importConnections(f *os.File) error {
 				}
 
 				// Update connection
-				err = c.Update()
+				err = db.Update(c.Id, &c)
 
 				if err != nil {
 					return err
@@ -254,8 +254,7 @@ func importConnections(f *os.File) error {
 				}
 
 				// Update connection
-
-				err = c.Update()
+				err = db.Update(c.Id, &c)
 
 				if err != nil {
 					return err

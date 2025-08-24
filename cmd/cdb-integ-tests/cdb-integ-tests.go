@@ -136,7 +136,7 @@ func main() {
 
 	cn.Description = "Updated"
 	cn.Host = "asdf"
-	err = cn.Update()
+	err = db.Update(cn.Id, &cn)
 
 	if err != nil {
 		log.Fatal("update: failed to update connection ", err)
@@ -200,7 +200,7 @@ func main() {
 		log.Fatal("delete: failed to find test d", err)
 	}
 
-	err = delcon.Delete()
+	err = db.Delete(delcon.Id)
 
 	if err != nil {
 		log.Fatal("delete: failed to delete test d ", err)

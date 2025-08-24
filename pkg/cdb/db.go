@@ -185,6 +185,38 @@ func (conndb *ConnectionDB) Get(id int64) (Connection, error) {
 	return c, err
 }
 
+// Delete removes a connection from the underlying SQL database.
+// It will return nil if the operation succeeeded and err otherwise.
+// Several checks are implemented that return package-specific errors. These
+// checks are simple and only cover obvious situations that will cause SQL
+// query exceptions.
+func (conndb *ConnectionDB) Delete(id int64) error {
+	// Do we have a valid id?
+	if id < 1 {
+		return ErrConnNoId
+	}
+
+	// Does the ID exist?
+	exists, err := conndb.Exists(id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return ErrIdNotExist
+	}
+
+	// Try deleting the connection
+	_, err = conndb.connection.Exec(`
+        DELETE FROM connections
+		WHERE id = $1
+		`,
+		sqlNullableInt64(id))
+
+	return err
+}
+
 func (conndb *ConnectionDB) GetAll() ([]*Connection, error) {
 	var cns []*Connection
 	rows, err := conndb.connection.Query("SELECT id FROM connections")
@@ -361,4 +393,53 @@ func (conndb *ConnectionDB) Search(search string) ([]*Connection, error) {
 	}
 
 	return cns, err
+}
+
+// Update updates an existing connection in the SQL database.
+// It will return nil if the operation succeeeded and err otherwise.
+// Several checks are implemented that return package-specific errors. These
+// checks are simple and only cover obvious situations that will cause SQL
+// query exceptions.
+func (conndb *ConnectionDB) Update(id int64, c *Connection) error {
+	// Validate connection properties
+	err := c.Validate()
+
+	if err != nil {
+		return err
+	}
+
+	// Does the ID exist?
+	exists, err := conndb.Exists(c.Id)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return ErrIdNotExist
+	}
+
+	// Try updating the connection
+	_, err = c.db.connection.Exec(`
+		UPDATE connections SET
+			nickname = $2,
+			host = $3,
+			user = $4,
+			description = $5,
+			args = $6,
+			identity = $7,
+			command = $8
+		WHERE id = $1
+		`,
+		sqlNullableInt64(c.Id),
+		sqlNullableString(c.Nickname),
+		sqlNullableString(c.Host),
+		sqlNullableString(c.User),
+		sqlNullableString(c.Description),
+		sqlNullableString(c.Args),
+		sqlNullableString(c.Identity),
+		sqlNullableString(c.Command),
+	)
+
+	return err
 }

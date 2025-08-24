@@ -56,7 +56,7 @@ sshcm delete 42`,
 		}
 
 		// Delete connection
-		err = c.Delete()
+		err = db.Delete(c.Id)
 
 		if err != nil {
 			panic(err)
